@@ -1,0 +1,91 @@
+digraph "configurator_lifecycle_test"
+{
+  bgcolor = "#ffffff"
+
+  node [
+    class = "node"
+    ,fillcolor = "#ffffff",style = "filled"
+    ,shape = "rect"
+    ,"_vis_" = "label"
+  ];
+
+  subgraph {
+    "reading_meta_config" []
+
+    rank = "source"
+  }
+
+  "Config Error?" [label="Config Error?", shape="diamond"]
+  "running" []
+
+  subgraph {
+    "applying_profiles" []
+    "initial_applying_profiles" []
+    rank = "same"
+  }
+
+  "refreshing_profiles" []
+  "Refresh Error?" [label="Refresh Error?", shape="diamond"]
+
+  "applying_profile" []
+  "First Run?" [label="First Run?", shape="diamond"]
+  "generating_templates" []
+  "Template Error?" [label="Template Error?", shape="diamond"]
+  "Profiles to Apply?" [label="Profiles to Apply?", shape="diamond"]
+
+  "reloading_services" []
+  "Services to Reload?" [label="Services to Reload?", shape="diamond"]
+  "reloading_service" []
+  "Reload Error?" [label="Reload Error?", shape="diamond"]
+
+  "pending_failure" []
+  "First Run PF" [label="First Run?", shape="diamond"]
+  "Retries Left?" [label="Retries Left?", shape="diamond"]
+  "refreshing_profile" []
+
+  subgraph {
+    "FAIL" []
+    "EXIT" []
+    rank = "sink"
+  }
+
+  edge [
+    class = "edge"
+    ,weight = "1"
+    ,penwidth = "1"
+    ,"_vis_" = "label"
+    ,"color" = "#a0a0a4"
+    ,"style" = "solid"
+  ]; 
+
+  "reading_meta_config" -> "Config Error?"
+  "Config Error?" -> "pending_failure" [label="Yes", color="red"]
+  "Config Error?" -> "refreshing_profiles" [label="No", color="green"]
+  "refreshing_profiles" -> "First Run?"
+  "Refresh Error?" -> "pending_failure" [label="Yes", color="red"]
+  "Refresh Error?" -> "generating_templates" [label="No", color="green"]
+  "First Run?" -> "initial_applying_profiles" [label="Yes"]
+  "First Run?" -> "applying_profiles" [label="No"]
+  "initial_applying_profiles" -> "Refresh Error?"
+  "generating_templates" -> "Template Error?"
+  "Template Error?" -> "reloading_services" [label="No", color="green"]
+  "Template Error?" -> "pending_failure" [label="Yes", color="red"]
+  "reloading_services" -> "Services to Reload?"
+  "Services to Reload?" -> "reloading_service" [label="Yes"]
+  "Services to Reload?" -> "applying_profiles" [label="No"]
+  "reloading_service" -> "Reload Error?"
+  "Reload Error?" -> "reloading_services" [label="No", color="green"]
+  "Reload Error?" -> "pending_failure" [label="Yes", color="red"]
+  "applying_profiles" -> "Profiles to Apply?"
+  "Profiles to Apply?" -> "applying_profile" [label="Yes"]
+  "Profiles to Apply?"-> "running" [label="No", constraint=false]
+  "applying_profile" -> "Refresh Error?"
+  "pending_failure" -> "First Run PF"
+  "First Run PF" -> "FAIL" [label="Yes"]
+  "First Run PF" -> "Retries Left?" [label="No", color="green"]
+  "Retries Left?" -> "FAIL" [label="No", color="red"]
+  "Retries Left?" -> "refreshing_profile" [label="Yes"]
+  "refreshing_profile" -> "applying_profile"
+  "running" -> "refreshing_profiles"
+  "running" -> "EXIT"
+}
