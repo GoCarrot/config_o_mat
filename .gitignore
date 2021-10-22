@@ -1,0 +1,9 @@
+# rspec persistence data
+spec/rspec_persistence.txt
+
+# test coverage data
+coverage/
+
+# YARD doc db and output
+.yardoc/
+doc/
