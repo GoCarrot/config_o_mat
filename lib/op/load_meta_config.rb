@@ -47,7 +47,7 @@ module Op
       # Sequel uses for its model classes (< Sequel::Model(source_dataset))
       # might be appropriate for how this system works?
       # do: Op::LoadMetaConfig(parser: Yaml.method(&:safe_load))
-      parser = YAML.method(:safe_load)
+      parser = proc { |file| YAML.safe_load(file, symbolize_names: true) }
       file_ending = '.conf'
 
       files =
@@ -61,7 +61,7 @@ module Op
 
       loaded_files =
         files.each_with_object({}) do |file, hash|
-          hash[file] = parser.call(File.read(file), symbolize_names: true)
+          hash[file] = parser.call(File.read(file))
         rescue StandardError => e
           error file, e
         end
