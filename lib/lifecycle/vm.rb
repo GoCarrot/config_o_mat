@@ -151,8 +151,8 @@ module Lifecycle
       self.class.config
     end
 
-    def_delegators :@memory, *Lifecycle::VmMemory::BUILTINS
-    def_delegators :@memory, *Lifecycle::VmMemory::BUILTINS.map { |field| :"#{field}=" }
+    def_delegators :@memory, *(Lifecycle::VmMemory::BUILTINS + [:logger])
+    def_delegators :@memory, *(Lifecycle::VmMemory::BUILTINS + [:logger]).map { |field| :"#{field}=" }
 
     def initialize(memory = nil)
       @memory = memory || @config.memory_class.new
