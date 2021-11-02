@@ -98,9 +98,9 @@ module Op
 
       self.dependencies = service_defs.each_with_object({}) do |(name, service), template_to_services|
         service.templates.each do |template|
-          template = template&.to_sym
+          template = template.to_sym
           if !template_defs.key?(template)
-            error 'services', { name => "references undefined template #{template}" }
+            error :services, { name => "references undefined template #{template}" }
           else
             # Listing the same template multiple times is acceptable. Since we allow
             # merging config files, and this deep merges the service dependency list,

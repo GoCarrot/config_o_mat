@@ -69,4 +69,34 @@ RSpec.describe Op::LoadMetaConfig do
       )
     end
   end
+
+  context 'with a missing template dependency' do
+    let(:configuration_directory) { 'missing_dependency' }
+
+    it 'errors on dependencies' do
+      expect(result.errors).to match(
+        services: [{test0: 'references undefined template templ1'}]
+      )
+    end
+  end
+
+  context 'with an unparsable file' do
+    let(:configuration_directory) { 'parse_error' }
+
+    it 'errors on the file' do
+      expect(result.errors).to match(
+        File.join(expanded_conf_dir, '00_base.yml.conf') => [an_instance_of(Psych::SyntaxError)]
+      )
+    end
+  end
+
+  context 'with a validation error' do
+    let(:configuration_directory) { 'validation_error' }
+
+    it 'errors on the bad config' do
+      expect(result.errors).to match(
+        services: [{test0: an_instance_of(ConfigItem::ValidationError)}]
+      )
+    end
+  end
 end
