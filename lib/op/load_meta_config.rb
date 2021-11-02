@@ -15,8 +15,7 @@ module Op
 
         def deep_merge!(other)
           merge!(other) do |key, this_val, other_val|
-            if this_val.respond_to?(:deep_merge!) &&
-               other_val.respond_to?(:deep_merge!) &&
+            if this_val.respond_to?(:deep_merge) &&
                this_val.is_a?(other_val.class)
               this_val.deep_merge(other_val)
             else
@@ -32,7 +31,7 @@ module Op
         end
 
         def deep_merge!(other)
-          concat(other) if other
+          concat(other)
         end
       end
     end
