@@ -1,6 +1,8 @@
 The expected final merged output of this config is
 
 log_level: debug
+client_id: bar
+refresh_interval: 20
 
 services:
   test0:

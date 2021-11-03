@@ -65,8 +65,38 @@ RSpec.describe Op::LoadMetaConfig do
           templ0: Set.new([services[:test0], services[:test1], services[:test2]]),
           templ1: Set.new([services[:test0]]),
           templ2: Set.new([services[:test0], services[:test1]])
-        })
+        }),
+        refresh_interval: 20,
+        client_id: 'bar'
       )
+    end
+  end
+
+  context 'with defaults' do
+    let(:configuration_directory) { 'use_defaults' }
+
+    it 'uses the default refresh interval and client id' do
+      expect(state).to have_attributes(
+        refresh_interval: 5,
+        client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/)
+      )
+    end
+
+    context 'with INVOCATION_ID set in env' do
+      let(:invocation_id) { SecureRandom.uuid }
+      let(:state) do
+        ConfiguratorMemory.new(
+          configuration_directory: expanded_conf_dir,
+          env: { 'INVOCATION_ID' => invocation_id }
+        )
+      end
+
+      it 'uses the invocation id as the client id' do
+        expect(state).to have_attributes(
+          refresh_interval: 5,
+          client_id: invocation_id
+        )
+      end
     end
   end
 

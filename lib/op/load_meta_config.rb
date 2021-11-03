@@ -3,6 +3,7 @@
 require 'lifecycle/op_base'
 require 'configurator_types'
 
+require 'securerandom'
 require 'yaml'
 
 module Op
@@ -38,11 +39,16 @@ module Op
 
     using DeepMerge
 
-    reads :configuration_directory
+    reads :configuration_directory, :env
     writes :profile_defs, :template_defs, :service_defs, :dependencies,
-           :refresh_interval, :logger
+           :refresh_interval, :client_id, :logger
 
     def call
+      default_config = {
+        refresh_interval: 5,
+        client_id: env.fetch('INVOCATION_ID') { SecureRandom.uuid }
+      }
+
       # TODO: I would like to make this configurable. I think the trick
       # Sequel uses for its model classes (< Sequel::Model(source_dataset))
       # might be appropriate for how this system works?
@@ -72,7 +78,7 @@ module Op
       return if errors?
 
       merged_config =
-        loaded_files.each_with_object({}) do |(_filename, config), memo|
+        loaded_files.each_with_object(default_config) do |(_filename, config), memo|
           memo.deep_merge!(config)
         end
 
@@ -94,6 +100,9 @@ module Op
       # on any missing dependencies -- that's an obvious consquence, and the addiitional
       # noise might mask the root cause.
       return if errors?
+
+      self.refresh_interval = merged_config[:refresh_interval]
+      self.client_id = merged_config[:client_id]
 
       self.dependencies = service_defs.each_with_object({}) do |(name, service), template_to_services|
         service.templates.each do |template|
