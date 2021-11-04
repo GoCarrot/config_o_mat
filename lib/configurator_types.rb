@@ -1,5 +1,35 @@
 # frozen_string_literal: true
 
+require 'json'
+
+class LogWriter
+  def call(level_name, event_type, merged_data)
+    merged_data[:level] = level_name
+    merged_data[:event_type] = event_type
+
+    write { "#{JSON.generate(merged_data)}\n" }
+  end
+end
+
+class StdoutLogWriter < LogWriter
+  def write
+    $stdout.write(yield)
+    $stdout.flush
+  end
+end
+
+class FileLogWriter < LogWriter
+  attr_reader :file_path
+
+  def initialize(file_path)
+    @file_path = file_path
+  end
+
+  def write
+    File.open(@file_path, 'a') { |f| f.write(yield) }
+  end
+end
+
 class ConfigItem
   class ValidationError < RuntimeError
     attr_reader :errors
