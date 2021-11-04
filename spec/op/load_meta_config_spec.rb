@@ -16,13 +16,19 @@ RSpec.describe Op::LoadMetaConfig do
 
   let(:state) do
     ConfiguratorMemory.new(
-      configuration_directory: expanded_conf_dir
+      configuration_directory: expanded_conf_dir,
+      logs_directory: logs_directory,
+      logger: logger
     )
   end
 
   let(:expanded_conf_dir) do
     File.expand_path(File.join(__dir__, '..', 'fixtures', 'config', configuration_directory))
   end
+
+  let(:logs_directory) { '/var/log/configurator' }
+
+  let(:logger) { LogsForMyFamily::Logger.new }
 
   context 'with the happy path' do
     let(:configuration_directory) { 'happy_path' }
@@ -67,8 +73,62 @@ RSpec.describe Op::LoadMetaConfig do
           templ2: Set.new([services[:test0], services[:test1]])
         }),
         refresh_interval: 20,
-        client_id: 'bar'
+        client_id: 'bar',
+        logger: an_instance_of(LogsForMyFamily::Logger).and(have_attributes(
+          level: :debug,
+          backends: contain_exactly(an_instance_of(StdoutLogWriter))
+        ))
       )
+    end
+  end
+
+  context 'with log file output' do
+    let(:configuration_directory) { 'log_file' }
+
+    it 'configures the logger' do
+      expect(state.logger).to be_an_instance_of(LogsForMyFamily::Logger).and(have_attributes(
+        level: :notice,
+        backends: contain_exactly(
+          an_instance_of(FileLogWriter).and(
+            have_attributes(file_path: File.join(logs_directory, 'test.log'))
+          )
+        )
+      ))
+    end
+
+    context 'without logs_directory set' do
+      let(:logs_directory) { nil }
+
+      it 'errors' do
+        expect(result.errors).to match(
+          log_type: ['must set logs directory with -l or $LOGS_DIRECTORY to set log_type to file']
+        )
+      end
+    end
+  end
+
+  context 'with log_type set to file but no log_file' do
+    let(:configuration_directory) { 'log_type_file_no_file' }
+
+    it 'configures the logger to log to configurator.log' do
+      expect(state.logger).to be_an_instance_of(LogsForMyFamily::Logger).and(have_attributes(
+        level: :notice,
+        backends: contain_exactly(
+          an_instance_of(FileLogWriter).and(
+            have_attributes(file_path: File.join(logs_directory, 'configurator.log'))
+          )
+        )
+      ))
+    end
+
+    context 'without logs_directory set' do
+      let(:logs_directory) { nil }
+
+      it 'errors' do
+        expect(result.errors).to match(
+          log_type: ['must set logs directory with -l or $LOGS_DIRECTORY to set log_type to file']
+        )
+      end
     end
   end
 
@@ -79,6 +139,13 @@ RSpec.describe Op::LoadMetaConfig do
       expect(state).to have_attributes(
         refresh_interval: 5,
         client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/)
+      )
+    end
+
+    it 'configures a default logger' do
+      expect(state.logger).to have_attributes(
+        level: :info,
+        backends: [an_instance_of(StdoutLogWriter)]
       )
     end
 
@@ -126,6 +193,26 @@ RSpec.describe Op::LoadMetaConfig do
     it 'errors on the bad config' do
       expect(result.errors).to match(
         services: [{test0: an_instance_of(ConfigItem::ValidationError)}]
+      )
+    end
+  end
+
+  context 'with an invalid log type' do
+    let(:configuration_directory) { 'invalid_log_type' }
+
+    it 'errors on log type' do
+      expect(result.errors).to match(
+        log_type: ['must be one of ["stdout", "file"]']
+      )
+    end
+  end
+
+  context 'with an invalid log level' do
+    let(:configuration_directory) { 'invalid_log_level' }
+
+    it 'errors on log_level' do
+      expect(result.errors).to match(
+        log_level: [include('must be one of')]
       )
     end
   end

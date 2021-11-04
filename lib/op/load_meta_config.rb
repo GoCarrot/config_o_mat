@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require 'bundler/setup'
+
 require 'lifecycle/op_base'
 require 'configurator_types'
+
+require 'logsformyfamily'
 
 require 'securerandom'
 require 'yaml'
@@ -39,7 +43,9 @@ module Op
 
     using DeepMerge
 
-    reads :configuration_directory, :env
+    LOG_TYPES = %i[stdout file].freeze
+
+    reads :configuration_directory, :logs_directory, :env
     writes :profile_defs, :template_defs, :service_defs, :dependencies,
            :refresh_interval, :client_id, :logger
 
@@ -96,10 +102,35 @@ module Op
       self.template_defs = instantiate.call(:templates, Template)
       self.profile_defs = instantiate.call(:profiles, Profile)
 
+      self.logger = LogsForMyFamily::Logger.new if !logger
+
+      log_type = merged_config[:log_type]&.to_sym || :stdout
+      error :log_type, "must be one of #{LOG_TYPES.map(&:to_s)}" if log_type && !LOG_TYPES.include?(log_type)
+
+      log_level = merged_config[:log_level]&.to_sym || :info
+      unless LogsForMyFamily::Logger::LEVELS.include?(log_level)
+        error :log_level, "must be one of #{LogsForMyFamily::Logger::LEVELS}"
+      end
+
+      backend =
+        if log_type == :file
+          log_file = merged_config[:log_file] || 'configurator.log'
+          if logs_directory.nil?
+            error :log_type, 'must set logs directory with -l or $LOGS_DIRECTORY to set log_type to file'
+          else
+            FileLogWriter.new(File.join(logs_directory, log_file))
+          end
+        else
+          StdoutLogWriter.new
+        end
+
       # If we couldn't initialize everything then it's probably not worth exploding
       # on any missing dependencies -- that's an obvious consquence, and the addiitional
       # noise might mask the root cause.
       return if errors?
+
+      logger.filter_level(log_level)
+      logger.backends = [backend]
 
       self.refresh_interval = merged_config[:refresh_interval]
       self.client_id = merged_config[:client_id]
