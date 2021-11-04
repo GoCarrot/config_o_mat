@@ -3,7 +3,23 @@ $LOAD_PATH << File.join(__dir__, 'lib')
 require_relative 'lib/configurator'
 require_relative 'lib/configurator_memory'
 
-memory = ConfiguratorMemory.new(argv: ARGV, env: ENV)
+require 'logsformyfamily'
+
+LogsForMyFamily.configure do |config|
+  config.version = Configurator::VERSION
+  config.app_name = Configurator.name
+end
+
+logger = LogsForMyFamily::Logger.new
+logger.backends = [StdoutLogWriter.new]
+log_level = ENV['CONFIGURATOR_LOG_LEVEL']&.to_sym
+if log_level && LogsForMyFamily::Logger::LEVELS.include?(log_level)
+  logger.filter_level(log_level)
+elsif log_level
+  $stderr.puts("Unknown log level requested in CONFIGURATOR_LOG_LEVEL: #{log_level}")
+end
+
+memory = ConfiguratorMemory.new(argv: ARGV, env: ENV, logger: logger)
 vm = Configurator.new(memory)
 vm.call
 

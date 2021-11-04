@@ -6,6 +6,8 @@ require 'cond'
 require 'configurator_memory'
 
 class Configurator < Lifecycle::VM
+  VERSION = "0.0.1"
+
   memory_class ConfiguratorMemory
   on_op_failure :op_failure
   terminal :fail
