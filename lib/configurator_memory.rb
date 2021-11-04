@@ -2,10 +2,13 @@
 
 require 'lifecycle/vm_memory'
 
+require 'configurator_types'
+
 class ConfiguratorMemory < Lifecycle::VmMemory
   attr_accessor :argv, :env, :early_exit, :configuration_directory,
-                :runtime_directory, :run_count, :profile_defs, :template_defs,
-                :service_defs, :dependencies, :refresh_interval, :client_id
+                :runtime_directory, :logs_directory, :run_count, :profile_defs,
+                :template_defs, :service_defs, :dependencies, :refresh_interval,
+                :client_id
 
   def initialize(
     argv: [],
@@ -13,13 +16,15 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     early_exit: false,
     configuration_directory: nil,
     runtime_directory: nil,
+    logs_directory: nil,
     run_count: 0,
     profile_defs: {},
     template_defs: {},
     service_defs: {},
     dependencies: {},
     refresh_interval: 5,
-    client_id: ''
+    client_id: '',
+    logger: nil
   )
     super()
 
@@ -28,6 +33,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @early_exit = early_exit
     @configuration_directory = configuration_directory
     @runtime_directory = runtime_directory
+    @logs_directory = logs_directory
     @run_count = run_count
     @profile_defs = profile_defs
     @template_defs = template_defs
@@ -35,5 +41,6 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @dependencies = dependencies
     @refresh_interval = refresh_interval
     @client_id = client_id
+    @logger = logger
   end
 end
