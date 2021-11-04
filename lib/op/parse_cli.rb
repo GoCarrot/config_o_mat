@@ -6,7 +6,7 @@ require 'optparse'
 module Op
   class ParseCli < Lifecycle::OpBase
     reads :argv, :env
-    writes :configuration_directory, :runtime_directory, :early_exit
+    writes :configuration_directory, :runtime_directory, :logs_directory, :early_exit
 
     # Add expand_path to string because the safe accessor is nice to use.
     module CoreExt
@@ -45,12 +45,20 @@ module Op
         ) do |dir|
           self.runtime_directory = dir
         end
+
+        opts.on(
+          '-l', '--logs-directory directory',
+          'Use the given directory for writing log files instead of $LOGS_DIRECTORY'
+        ) do |dir|
+          self.logs_directory = dir
+        end
       end
 
       parser.parse(argv)
 
       self.configuration_directory ||= env['CONFIGURATION_DIRECTORY']
       self.runtime_directory ||= env['RUNTIME_DIRECTORY']
+      self.logs_directory ||= env['LOGS_DIRECTORY']
 
       self.configuration_directory = configuration_directory&.expand_path
       self.runtime_directory = runtime_directory&.expand_path

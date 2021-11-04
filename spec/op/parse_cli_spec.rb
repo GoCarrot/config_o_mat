@@ -20,7 +20,8 @@ RSpec.describe Op::ParseCli do
   let(:env) do
     {
       'CONFIGURATION_DIRECTORY' => '/etc/configurator',
-      'RUNTIME_DIRECTORY' => '/run/configurator'
+      'RUNTIME_DIRECTORY' => '/run/configurator',
+      'LOGS_DIRECTORY' => '/var/log/configurator'
     }
   end
 
@@ -86,6 +87,20 @@ RSpec.describe Op::ParseCli do
 
       it 'prefers the cli value' do
         expect(state.runtime_directory).to eq '/somewhere/else'
+      end
+    end
+  end
+
+  context 'when LOGS_DIRECTORY is set in env' do
+    it 'sets the logs_directory to the env value' do
+      expect(state.logs_directory).to eq '/var/log/configurator'
+    end
+
+    context 'when logs directory is set on the command line' do
+      let(:argv) { %w[-l /somewhere/else] }
+
+      it 'prefers the cli value' do
+        expect(state.logs_directory).to eq '/somewhere/else'
       end
     end
   end
