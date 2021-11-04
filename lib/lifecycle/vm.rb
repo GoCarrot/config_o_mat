@@ -233,7 +233,7 @@ module Lifecycle
   private
 
     def do_state(next_state)
-      logger&.debug(:enter, state: state, ctx: self)
+      logger&.debug(:enter, state: next_state, ctx: self)
       self.last_state = current_state
 
       state = config.states[next_state]
