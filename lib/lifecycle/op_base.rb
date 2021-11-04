@@ -46,7 +46,7 @@ module Lifecycle
         obj.instance_variable_set(ivar, state.send(attribute).clone)
       end
 
-      obj.send(:initialize)
+      obj.send(:initialize, state.logger)
       obj.send(:call)
       obj.send(:validate)
 
@@ -61,14 +61,15 @@ module Lifecycle
       obj
     end
 
-    def initialize
+    def initialize(logger)
       @errors = nil
+      @logger = logger
     end
 
     def call; end
     def validate; end
 
-    attr_reader :errors
+    attr_reader :errors, :logger
 
     def error(field, message)
       @errors ||= {}
