@@ -27,8 +27,14 @@ module Lifecycle
         obj.instance_variable_set(ivar, state.send(attribute).clone)
       end
 
-      obj.send(:initialize)
+      obj.send(:initialize, state.logger)
       obj.send(:call)
+    end
+
+    attr_reader :logger
+
+    def initialize(logger)
+      @logger = logger
     end
 
     def call; end
