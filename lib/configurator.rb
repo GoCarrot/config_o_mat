@@ -20,7 +20,9 @@ class Configurator < Lifecycle::VM
     }
   }
 
-  on :reading_meta_config, do: Op::LoadMetaConfig, then: :refreshing_profiles
+  on :reading_meta_config, do: Op::LoadMetaConfig, then: :compiling_templates
+
+  on :compiling_templates, do: Op::CompileTemplates, then: :refreshing_profiles
 
   on :refreshing_profiles,
      do: Op::RefreshAllProfiles,

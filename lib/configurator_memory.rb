@@ -8,7 +8,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
   attr_accessor :argv, :env, :early_exit, :configuration_directory,
                 :runtime_directory, :logs_directory, :run_count, :profile_defs,
                 :template_defs, :service_defs, :dependencies, :refresh_interval,
-                :client_id
+                :client_id, :compiled_templates
 
   def initialize(
     argv: [],
@@ -24,7 +24,8 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     dependencies: {},
     refresh_interval: 5,
     client_id: '',
-    logger: nil
+    logger: nil,
+    compiled_templates: {}
   )
     super()
 
@@ -42,5 +43,6 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @refresh_interval = refresh_interval
     @client_id = client_id
     @logger = logger
+    @compiled_templates = compiled_templates
   end
 end
