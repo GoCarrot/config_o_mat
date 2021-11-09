@@ -150,20 +150,23 @@ class Profile < ConfigItem
 end
 
 class LoadedProfile < ConfigItem
-  attr_reader :version, :contents
+  attr_reader :name, :version, :contents
 
-  def initialize(version, contents)
+  def initialize(name, version, contents)
+    @name = name
     @version = version
     @contents = contents
   end
 
   def validate
+    error :name, 'must be present' if @name.nil? || @name.empty?
+    error :name, 'must be a Symbol' unless @name.is_a?(Symbol)
     error :version, 'must be present' if @version.nil? || @version.empty?
     error :contents, 'must be present' if @contents.nil? || @contents.empty?
   end
 
   def hash
-    @version.hash ^ @contents.hash
+    @name.hash ^ @version.hash ^ @contents.hash
   end
 
   def to_h
@@ -172,7 +175,7 @@ class LoadedProfile < ConfigItem
 
   def eql?(other)
     return false if !super(other)
-    return false if other.version != version || other.contents != contents
+    return false if other.version != version || other.contents != contents || other.name != name
     true
   end
 end

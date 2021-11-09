@@ -34,8 +34,8 @@ RSpec.describe Op::CompileTemplates do
 
   let(:profiles) do
     {
-      source0: LoadedProfile.new('1', answer: 42),
-      source1: LoadedProfile.new('2', answer: 181)
+      source0: LoadedProfile.new(:source0, '1', answer: 42),
+      source1: LoadedProfile.new(:source1, '2', answer: 181)
     }
   end
 

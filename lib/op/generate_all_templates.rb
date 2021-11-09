@@ -10,7 +10,9 @@ module Op
     writes :generated_templates, :services_to_reload
 
     def call
-      profiles = applied_profiles.merge(applying_profile || {})
+      profiles = applied_profiles
+      profiles[applying_profile.name] = applying_profile if applying_profile
+
       template_defs.each do |(key, templ_def)|
         compiled_template = compiled_templates[key]
 

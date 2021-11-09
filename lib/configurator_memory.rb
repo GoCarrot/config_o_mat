@@ -28,7 +28,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     logger: nil,
     compiled_templates: {},
     applied_profiles: {},
-    applying_profile: {},
+    applying_profile: nil,
     generated_templates: {},
     services_to_reload: Set.new
   )
