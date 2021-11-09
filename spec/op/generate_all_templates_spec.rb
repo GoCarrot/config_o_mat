@@ -80,7 +80,7 @@ RSpec.describe Op::GenerateAllTemplates do
 
     it 'updates state' do
       expect(state).to have_attributes(
-        services_to_reload: Set.new([:service0, :service1]),
+        services_to_reload: [:service0, :service1],
         generated_templates: {
           templ0: GeneratedTemplate.new(%(answer: 42\nvalue: 181\n)),
           templ1: generated_templates[:templ1]
@@ -99,7 +99,7 @@ RSpec.describe Op::GenerateAllTemplates do
 
       it 'updates state' do
         expect(state).to have_attributes(
-          services_to_reload: Set.new([:service0, :service1, :service2]),
+          services_to_reload: [:service0, :service1, :service2],
           generated_templates: {
             templ0: GeneratedTemplate.new(%(answer: 42\nvalue: 255\n)),
             templ1: GeneratedTemplate.new(%(versions:\n  source0: '1'\n  source1: '3'\n))

@@ -12,6 +12,7 @@ module Op
     def call
       profiles = applied_profiles
       profiles[applying_profile.name] = applying_profile if applying_profile
+      self.services_to_reload = []
 
       template_defs.each do |(key, templ_def)|
         compiled_template = compiled_templates[key]
@@ -31,9 +32,10 @@ module Op
 
           generated_templates[key] = generated
           File.open(destination_file, 'w') { |f| f.write(rendered) }
-          self.services_to_reload ||= Set.new
           dependencies[key].each { |service| services_to_reload << service }
         end
+
+        services_to_reload.uniq!
       end
     end
   end
