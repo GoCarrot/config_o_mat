@@ -9,6 +9,8 @@ module Op
 
     def call
       self.applying_profile = profiles_to_apply.pop
+
+      error applying_profile.name, applying_profile.errors if applying_profile.errors?
     end
   end
 end
