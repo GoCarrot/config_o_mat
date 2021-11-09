@@ -9,7 +9,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
                 :runtime_directory, :logs_directory, :run_count, :profile_defs,
                 :template_defs, :service_defs, :dependencies, :refresh_interval,
                 :client_id, :compiled_templates, :applied_profiles, :applying_profile,
-                :generated_templates, :services_to_reload
+                :generated_templates, :services_to_reload, :profiles_to_apply
 
   def initialize(
     argv: [],
@@ -28,6 +28,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     logger: nil,
     compiled_templates: {},
     applied_profiles: {},
+    profiles_to_apply: [],
     applying_profile: nil,
     generated_templates: {},
     services_to_reload: Set.new
@@ -50,6 +51,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @logger = logger
     @compiled_templates = compiled_templates
     @applied_profiles = applied_profiles
+    @profiles_to_apply = profiles_to_apply
     @applying_profile = applying_profile
     @generated_templates = generated_templates
     @services_to_reload = services_to_reload
