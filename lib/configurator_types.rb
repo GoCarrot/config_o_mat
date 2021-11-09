@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'digest'
 
 class LogWriter
   def call(level_name, event_type, merged_data)
@@ -144,6 +145,55 @@ class Profile < ConfigItem
   def eql?(other)
     return false if !super(other)
     return false if other.application != application || other.environment != environment || other.profile != profile
+    true
+  end
+end
+
+class LoadedProfile < ConfigItem
+  attr_reader :version, :contents
+
+  def initialize(version, contents)
+    @version = version
+    @contents = contents
+  end
+
+  def validate
+    error :version, 'must be present' if @version.nil? || @version.empty?
+    error :contents, 'must be present' if @contents.nil? || @contents.empty?
+  end
+
+  def hash
+    @version.hash ^ @contents.hash
+  end
+
+  def to_h
+    @contents
+  end
+
+  def eql?(other)
+    return false if !super(other)
+    return false if other.version != version || other.contents != contents
+    true
+  end
+end
+
+class GeneratedTemplate < ConfigItem
+  attr_reader :digest
+
+  def initialize(contents)
+    @digest = Digest::SHA256.digest(contents)
+  end
+
+  def validate
+  end
+
+  def hash
+    @digest.hash
+  end
+
+  def eql?(other)
+    return false if !super(other)
+    return false if other.digest != digest
     true
   end
 end
