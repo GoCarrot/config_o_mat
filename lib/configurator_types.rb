@@ -152,10 +152,27 @@ end
 class LoadedProfile < ConfigItem
   attr_reader :name, :version, :contents
 
-  def initialize(name, version, contents)
+  PARSERS = {
+    'text/plain' => proc { |str| str },
+    'application/json' => proc { |str| JSON.parse(str, symbolize_names: true) },
+    'application/x-yaml' => proc { |str| YAML.safe_load(str, symbolize_names: true) }
+  }.freeze
+
+  def initialize(name, version, contents, content_type)
     @name = name
     @version = version
-    @contents = contents
+
+    parser = PARSERS[content_type]
+
+    if parser
+      begin
+        @contents = parser.call(contents)
+      rescue StandardError => e
+        error :contents, e
+      end
+    else
+      error :content_type, "must be one of #{PARSERS.keys}"
+    end
   end
 
   def validate

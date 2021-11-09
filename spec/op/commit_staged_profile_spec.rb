@@ -22,10 +22,10 @@ RSpec.describe Op::CommitStagedProfile do
     )
   end
 
-  let(:source0) { LoadedProfile.new(:source0, '1', answer: 42) }
-  let(:source1) { LoadedProfile.new(:source1, '2', answer: 5) }
-  let(:n_source0) { LoadedProfile.new(:source0, '2', answer: 255) }
-  let(:n_source1) { LoadedProfile.new(:source1, '3', answer: 181) }
+  let(:source0) { LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json') }
+  let(:source1) { LoadedProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json') }
+  let(:n_source0) { LoadedProfile.new(:source0, '2', { answer: 255 }.to_json, 'application/json') }
+  let(:n_source1) { LoadedProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json') }
   let(:profiles_to_apply) { [n_source0, n_source1] }
   let(:applying_profile) { n_source1 }
   let(:applied_profiles) do

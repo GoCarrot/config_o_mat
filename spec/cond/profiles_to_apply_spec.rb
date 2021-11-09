@@ -29,7 +29,7 @@ RSpec.describe Cond::ProfilesToApply do
   end
 
   context 'with profiles to apply' do
-    let(:profiles_to_apply) { [LoadedProfile.new(:source0, '1', answer: 42)] }
+    let(:profiles_to_apply) { [LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json')] }
 
     it 'is true' do
       expect(result).to be true

@@ -43,8 +43,8 @@ RSpec.describe Op::GenerateAllTemplates do
 
   let(:applied_profiles) do
     {
-      source0: LoadedProfile.new(:source0, '1', answer: 42),
-      source1: LoadedProfile.new(:source1, '2', answer: 181)
+      source0: LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+      source1: LoadedProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json')
     }
   end
 
@@ -90,7 +90,7 @@ RSpec.describe Op::GenerateAllTemplates do
 
     context 'when applying a profile' do
       let(:applying_profile) do
-        LoadedProfile.new(:source1, '3', answer: 255)
+        LoadedProfile.new(:source1, '3', { answer: 255 }.to_json, 'application/json')
       end
 
       it 'uses the profile being applied' do
@@ -130,7 +130,7 @@ RSpec.describe Op::GenerateAllTemplates do
   context 'when a template errors' do
     let(:applied_profiles) do
       {
-        source0: LoadedProfile.new(:source0, '1', answer: 42),
+        source0: LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
       }
     end
 

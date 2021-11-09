@@ -23,8 +23,8 @@ RSpec.describe Op::ApplyAllProfiles do
 
   let(:profiles_to_apply) do
     [
-      LoadedProfile.new(:source0, '1', answer: 42),
-      LoadedProfile.new(:source1, '3', answer: 181)
+      LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+      LoadedProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json')
     ]
   end
 
@@ -40,8 +40,8 @@ RSpec.describe Op::ApplyAllProfiles do
   context 'with profiles already applied' do
     let(:applied_profiles) do
       {
-        source1: LoadedProfile.new(:source1, '2', answer: 5),
-        source2: LoadedProfile.new(:source2, '8', answer: 255)
+        source1: LoadedProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json'),
+        source2: LoadedProfile.new(:source2, '8', { answer: 255 }.to_json, 'application/json')
       }
     end
 

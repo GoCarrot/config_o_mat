@@ -22,8 +22,8 @@ RSpec.describe Op::StageOneProfile do
 
   let(:profiles_to_apply) do
     [
-      LoadedProfile.new(:source0, '1', answer: 42),
-      LoadedProfile.new(:source1, '3', answer: 181)
+      LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+      LoadedProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json')
     ]
   end
 
