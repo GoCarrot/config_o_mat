@@ -1,7 +1,9 @@
-$LOAD_PATH << File.join(__dir__, 'lib')
+#!/usr/bin/env ruby
 
-require_relative 'lib/configurator'
-require_relative 'lib/configurator_memory'
+$LOAD_PATH << File.join(__dir__, '..', 'lib')
+
+require_relative '../lib/configurator'
+require_relative '../lib/configurator_memory'
 
 require 'logsformyfamily'
 
