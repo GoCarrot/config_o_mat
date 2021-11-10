@@ -4,11 +4,10 @@ require 'lifecycle/cond_base'
 
 module Cond
   class NextState < Lifecycle::CondBase
-    reads :run_count
-    writes :run_count
+    reads :next_state
 
     def call
-      self.run_count += 1
+      next_state
     end
   end
 end
