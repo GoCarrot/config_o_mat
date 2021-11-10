@@ -5,7 +5,7 @@ require 'lifecycle/op_base'
 module Op
   class StageOneProfile < Lifecycle::OpBase
     reads :profiles_to_apply
-    writes :applying_profile
+    writes :applying_profile, :profiles_to_apply
 
     def call
       self.applying_profile = profiles_to_apply.pop

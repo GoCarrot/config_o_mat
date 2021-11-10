@@ -29,8 +29,8 @@ RSpec.describe Op::StageOneProfile do
 
   it 'sets a profile from profiles to apply as the profile being applied' do
     expect(state).to have_attributes(
-      profiles_to_apply: eq(profiles_to_apply).and(include(state.applying_profile)),
-      applying_profile: an_instance_of(LoadedProfile)
+      profiles_to_apply: profiles_to_apply[0...1],
+      applying_profile: profiles_to_apply[1]
     )
   end
 

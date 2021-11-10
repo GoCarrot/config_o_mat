@@ -17,16 +17,13 @@ RSpec.describe Op::CommitStagedProfile do
   let(:state) do
     ConfiguratorMemory.new(
       applied_profiles: applied_profiles,
-      profiles_to_apply: profiles_to_apply,
       applying_profile: applying_profile
     )
   end
 
   let(:source0) { LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json') }
   let(:source1) { LoadedProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json') }
-  let(:n_source0) { LoadedProfile.new(:source0, '2', { answer: 255 }.to_json, 'application/json') }
   let(:n_source1) { LoadedProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json') }
-  let(:profiles_to_apply) { [n_source0, n_source1] }
   let(:applying_profile) { n_source1 }
   let(:applied_profiles) do
     {
@@ -39,7 +36,6 @@ RSpec.describe Op::CommitStagedProfile do
     expect(state).to have_attributes(
       applied_profiles: applied_profiles.yield_self { |ap| ap.dup.merge(applying_profile.name => applying_profile) },
       applying_profile: nil,
-      profiles_to_apply: [n_source0]
     )
   end
 end
