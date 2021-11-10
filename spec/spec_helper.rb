@@ -2,6 +2,11 @@ require 'simplecov'
 
 SimpleCov.start do
   enable_coverage :branch
+
+  add_group 'Specs', 'spec'
+  add_group 'Ops', 'lib/op'
+  add_group 'Conds', 'lib/cond'
+  add_group 'App', 'lib/'
 end
 
 $LOAD_PATH << File.join(__dir__, '..', 'lib')
