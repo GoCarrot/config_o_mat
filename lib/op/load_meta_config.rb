@@ -55,7 +55,10 @@ module Op
         refresh_interval: 5,
         client_id: env.fetch('INVOCATION_ID') { SecureRandom.uuid },
         retry_count: 3,
-        retry_wait: 2
+        retry_wait: 2,
+        services: [],
+        templates: [],
+        profiles: []
       }
 
       # TODO: I would like to make this configurable. I think the trick
