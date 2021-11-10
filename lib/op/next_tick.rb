@@ -6,11 +6,14 @@ module Op
   class NextTick < Lifecycle::OpBase
     PAUSE_INTERVAL = 1
 
-    reads :last_refresh_time, :refresh_interval, :run_count
-    writes :next_state, :run_count
+    reads :last_refresh_time, :refresh_interval, :run_count, :retry_count
+    writes :next_state, :run_count, :retries_left
 
     def call
       self.run_count += 1
+
+      # If we got here then our retry process has succeeded.
+      self.retries_left = retry_count
 
       # I'm calling Kernel.sleep directly so that tests can easily stub it out.
       Kernel.sleep PAUSE_INTERVAL

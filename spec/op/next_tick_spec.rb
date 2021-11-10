@@ -20,13 +20,17 @@ RSpec.describe Op::NextTick do
     ConfiguratorMemory.new(
       last_refresh_time: last_refresh_time,
       refresh_interval: refresh_interval,
-      run_count: run_count
+      run_count: run_count,
+      retry_count: retry_count,
+      retries_left: retries_left
     )
   end
 
   let(:last_refresh_time) { Time.now.to_i }
   let(:refresh_interval) { 5 }
   let(:run_count) { rand(1_000_000) }
+  let(:retry_count) { 42 }
+  let(:retries_left) { 5 }
 
   context "when we aren't due to refresh profiles" do
     it 'sleeps' do
@@ -36,7 +40,8 @@ RSpec.describe Op::NextTick do
     it 'updates state and proceeds to running' do
       expect(state).to have_attributes(
         next_state: :running,
-        run_count: run_count + 1
+        run_count: run_count + 1,
+        retries_left: retry_count
       )
     end
   end
@@ -51,7 +56,8 @@ RSpec.describe Op::NextTick do
     it 'updates state and proceeds to refreshing_profiles' do
       expect(state).to have_attributes(
         next_state: :refreshing_profiles,
-        run_count: run_count + 1
+        run_count: run_count + 1,
+        retries_left: retry_count
       )
     end
   end
