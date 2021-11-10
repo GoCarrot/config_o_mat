@@ -40,17 +40,18 @@ RSpec.describe Op::RefreshAllProfiles do
     }
   end
 
+  let(:stub_responses) do
+    {
+      'test' => { content: StringIO.new({ answer: 42 }.to_json), configuration_version: '1', content_type: 'application/json' },
+      'foo' => { content: StringIO.new({ answer: 181 }.to_json), configuration_version: '2', content_type: 'application/json' },
+      'other' => { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
+    }
+  end
+
   let(:client_stub) do
     Aws::AppConfig::Client.new(stub_responses: true).tap do |client|
       client.stub_responses(:get_configuration, proc do |request|
-        case request.params[:application]
-        when 'test'
-          { content: StringIO.new({ answer: 42 }.to_json), configuration_version: '1', content_type: 'application/json' }
-        when 'foo'
-          { content: StringIO.new({ answer: 181 }.to_json), configuration_version: '2', content_type: 'application/json' }
-        when 'other'
-          { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
-        end
+        stub_responses[request.params[:application]]
       end
       )
     end
@@ -104,20 +105,12 @@ RSpec.describe Op::RefreshAllProfiles do
   end
 
   context 'when a profile update errors' do
-    let(:client_stub) do
-      Aws::AppConfig::Client.new(stub_responses: true).tap do |client|
-        client.stub_responses(:get_configuration, proc do |request|
-          case request.params[:application]
-          when 'test'
-            { content: StringIO.new, configuration_version: '1', content_type: 'application/json' }
-          when 'foo'
-            { content: StringIO.new({ answer: 181 }.to_json), configuration_version: '2', content_type: 'application/json' }
-          when 'other'
-            'BadRequestException'
-          end
-        end
-        )
-      end
+    let(:stub_responses) do
+      {
+        'test' => { content: StringIO.new, configuration_version: '1', content_type: 'application/json' },
+        'foo' => { content: StringIO.new({ answer: 181 }.to_json), configuration_version: '2', content_type: 'application/json' },
+        'other' => 'BadRequestException'
+      }
     end
 
     it 'errors' do
