@@ -201,7 +201,7 @@ class GeneratedTemplate < ConfigItem
   attr_reader :digest
 
   def initialize(contents)
-    @digest = Digest::SHA256.digest(contents)
+    @digest = Digest::SHA256.hexdigest(contents)
   end
 
   def validate
