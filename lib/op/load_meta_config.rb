@@ -47,12 +47,15 @@ module Op
 
     reads :configuration_directory, :logs_directory, :env
     writes :profile_defs, :template_defs, :service_defs, :dependencies,
-           :refresh_interval, :client_id, :logger
+           :refresh_interval, :client_id, :logger, :retry_count, :retries_left,
+           :retry_wait
 
     def call
       default_config = {
         refresh_interval: 5,
-        client_id: env.fetch('INVOCATION_ID') { SecureRandom.uuid }
+        client_id: env.fetch('INVOCATION_ID') { SecureRandom.uuid },
+        retry_count: 3,
+        retry_wait: 2
       }
 
       # TODO: I would like to make this configurable. I think the trick
@@ -134,6 +137,9 @@ module Op
 
       self.refresh_interval = merged_config[:refresh_interval]
       self.client_id = merged_config[:client_id]
+      self.retry_count = merged_config[:retry_count]
+      self.retries_left = retry_count
+      self.retry_wait = merged_config[:retry_wait]
 
       self.dependencies = service_defs.each_with_object({}) do |(name, service), template_to_services|
         service.templates.each do |template|

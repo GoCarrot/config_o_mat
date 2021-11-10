@@ -11,7 +11,7 @@ RSpec.describe Op::LoadMetaConfig do
   end
 
   before { @result = perform }
-  
+
   subject(:result) { @result }
 
   let(:state) do
@@ -77,7 +77,10 @@ RSpec.describe Op::LoadMetaConfig do
         logger: an_instance_of(LogsForMyFamily::Logger).and(have_attributes(
           level: :debug,
           backends: contain_exactly(an_instance_of(StdoutLogWriter))
-        ))
+        )),
+        retry_count: 6,
+        retries_left: 6,
+        retry_wait: 12
       )
     end
   end
@@ -135,17 +138,17 @@ RSpec.describe Op::LoadMetaConfig do
   context 'with defaults' do
     let(:configuration_directory) { 'use_defaults' }
 
-    it 'uses the default refresh interval and client id' do
+    it 'uses default config and logger' do
       expect(state).to have_attributes(
         refresh_interval: 5,
-        client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/)
-      )
-    end
-
-    it 'configures a default logger' do
-      expect(state.logger).to have_attributes(
-        level: :info,
-        backends: [an_instance_of(StdoutLogWriter)]
+        client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/),
+        logger: have_attributes(
+          level: :info,
+          backends: [an_instance_of(StdoutLogWriter)]
+        ),
+        retry_count: 3,
+        retries_left: 3,
+        retry_wait: 2
       )
     end
 

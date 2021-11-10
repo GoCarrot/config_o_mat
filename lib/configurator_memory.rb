@@ -10,7 +10,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
                 :template_defs, :service_defs, :dependencies, :refresh_interval,
                 :client_id, :compiled_templates, :applied_profiles, :applying_profile,
                 :generated_templates, :services_to_reload, :profiles_to_apply,
-                :last_refresh_time, :next_state
+                :last_refresh_time, :next_state, :retry_count, :retries_left, :retry_wait
 
   def initialize(
     argv: [],
@@ -34,7 +34,10 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     generated_templates: {},
     services_to_reload: Set.new,
     last_refresh_time: 0,
-    next_state: :running
+    next_state: :running,
+    retry_count: 3,
+    retries_left: 3,
+    retry_wait: 2
   )
     super()
 
@@ -60,5 +63,8 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @services_to_reload = services_to_reload
     @last_refresh_time = last_refresh_time
     @next_state = next_state
+    @retry_count = retry_count
+    @retries_left = retries_left
+    @retry_wait = 2
   end
 end

@@ -3,6 +3,8 @@ The expected final merged output of this config is
 log_level: debug
 client_id: bar
 refresh_interval: 20
+retry_count: 6
+retry_wait: 12
 
 services:
   test0:
