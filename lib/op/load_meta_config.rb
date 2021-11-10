@@ -113,8 +113,8 @@ module Op
       log_type = merged_config[:log_type]&.to_sym || :stdout
       error :log_type, "must be one of #{LOG_TYPES.map(&:to_s)}" if log_type && !LOG_TYPES.include?(log_type)
 
-      log_level = merged_config[:log_level]&.to_sym || :info
-      unless LogsForMyFamily::Logger::LEVELS.include?(log_level)
+      log_level = merged_config[:log_level]&.to_sym
+      if log_level && !LogsForMyFamily::Logger::LEVELS.include?(log_level)
         error :log_level, "must be one of #{LogsForMyFamily::Logger::LEVELS}"
       end
 
@@ -135,7 +135,7 @@ module Op
       # noise might mask the root cause.
       return if errors?
 
-      logger.filter_level(log_level)
+      logger.filter_level(log_level) if log_level
       logger.backends = [backend]
 
       self.refresh_interval = merged_config[:refresh_interval]

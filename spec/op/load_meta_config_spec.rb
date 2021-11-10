@@ -143,7 +143,6 @@ RSpec.describe Op::LoadMetaConfig do
         refresh_interval: 5,
         client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/),
         logger: have_attributes(
-          level: :info,
           backends: [an_instance_of(StdoutLogWriter)]
         ),
         retry_count: 3,
