@@ -65,6 +65,6 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @next_state = next_state
     @retry_count = retry_count
     @retries_left = retries_left
-    @retry_wait = 2
+    @retry_wait = retry_wait
   end
 end
