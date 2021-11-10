@@ -38,7 +38,7 @@ module Op
 
           generated_templates[key] = generated
           File.open(destination_file, 'w') { |f| f.write(rendered) }
-          dependencies[key].each { |service| services_to_reload << service }
+          dependencies[key]&.each { |service| services_to_reload << service }
         end
 
         services_to_reload.uniq!

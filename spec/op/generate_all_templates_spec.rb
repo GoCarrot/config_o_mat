@@ -139,6 +139,31 @@ RSpec.describe Op::GenerateAllTemplates do
     end
   end
 
+  context 'with a template that has no declared dependencies' do
+    let(:template_defs) do
+      {
+        templ0: Template.new(src: 'foo.conf', dst: 'foo.conf'),
+        templ1: Template.new(src: 'bar.conf', dst: 'bar.conf'),
+        templ2: Template.new(src: 'other.conf', dst: 'other.conf')
+      }
+    end
+
+    it 'writes templates into runtime_directory' do
+      expect(File.read(File.join(runtime_directory, 'other.conf'))).to eq %(answer: 42\nvalue: 181\n)
+    end
+
+    it 'updates state' do
+      expect(state).to have_attributes(
+        services_to_reload: [:service0, :service1],
+        generated_templates: {
+          templ0: GeneratedTemplate.new(%(answer: 42\nvalue: 181\n)),
+          templ1: generated_templates[:templ1],
+          templ2: GeneratedTemplate.new(%(answer: 42\nvalue: 181\n))
+        }
+      )
+    end
+  end
+
   context 'when a template errors' do
     let(:applied_profiles) do
       {
