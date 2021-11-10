@@ -7,11 +7,12 @@ require 'aws-sdk-appconfig'
 module Op
   class RefreshAllProfiles < Lifecycle::OpBase
     reads :profile_defs, :applied_profiles, :client_id
-    writes :profiles_to_apply
+    writes :profiles_to_apply, :last_refresh_time
 
     def call
       client = Aws::AppConfig::Client.new
       self.profiles_to_apply = []
+      self.last_refresh_time = Time.now.to_i
 
       profile_defs.each do |(profile_name, definition)|
         request = {

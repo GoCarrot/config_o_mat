@@ -81,6 +81,10 @@ RSpec.describe Op::RefreshAllProfiles do
         LoadedProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
       )
     end
+
+    it 'sets last refresh time' do
+      expect(state.last_refresh_time).to be_within(1).of(Time.now.to_i)
+    end
   end
 
   context 'with no applied profiles' do
@@ -92,6 +96,10 @@ RSpec.describe Op::RefreshAllProfiles do
         LoadedProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
         LoadedProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
       )
+    end
+
+    it 'sets last refresh time' do
+      expect(state.last_refresh_time).to be_within(1).of(Time.now.to_i)
     end
   end
 
