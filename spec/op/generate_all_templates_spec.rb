@@ -106,6 +106,18 @@ RSpec.describe Op::GenerateAllTemplates do
           }
         )
       end
+
+      context 'when the profile is errored' do
+        let(:applying_profile) do
+          LoadedProfile.new(:source1, '3', '{"answer: 181', 'application/json')
+        end
+
+        it 'errors' do
+          expect(result.errors).to match(
+            source1: [{ contents: [an_instance_of(JSON::ParserError)] }]
+          )
+        end
+      end
     end
 
     context 'with a logger' do

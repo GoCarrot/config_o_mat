@@ -41,9 +41,10 @@ RSpec.describe Op::StageOneProfile do
       ]
     end
 
-    it 'errors' do
-      expect(result.errors).to match(
-        source1: [{ contents: [an_instance_of(JSON::ParserError)] }]
+    it 'sets a profile from profiles to apply as the profile being applied' do
+      expect(state).to have_attributes(
+        profiles_to_apply: [],
+        applying_profile: profiles_to_apply[0]
       )
     end
   end

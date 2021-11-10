@@ -10,6 +10,12 @@ module Op
     writes :generated_templates, :services_to_reload
 
     def call
+      # By doing the error check here instead of in StageOneProfile we ensure that the applying_profile
+      # gets set in memory, even if errored, which simplifies the retry logic.
+      error applying_profile.name, applying_profile.errors if applying_profile&.errors?
+
+      return if errors?
+
       profiles = applied_profiles
       profiles[applying_profile.name] = applying_profile if applying_profile
       self.services_to_reload = []

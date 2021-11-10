@@ -10,7 +10,8 @@ module Op
     def call
       self.applying_profile = profiles_to_apply.pop
 
-      error applying_profile.name, applying_profile.errors if applying_profile.errors?
+      # We defer error checking to GenerateAllTemplates so that even if errored the profile gets set as
+      # the applying_profile, which simplifies retry logic.
     end
   end
 end
