@@ -10,7 +10,7 @@ class ConfiguratorMemory < Lifecycle::VmMemory
                 :template_defs, :service_defs, :dependencies, :refresh_interval,
                 :client_id, :compiled_templates, :applied_profiles, :applying_profile,
                 :generated_templates, :services_to_reload, :profiles_to_apply,
-                :last_refresh_time
+                :last_refresh_time, :next_state
 
   def initialize(
     argv: [],
@@ -33,7 +33,8 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     applying_profile: nil,
     generated_templates: {},
     services_to_reload: Set.new,
-    last_refresh_time: 0
+    last_refresh_time: 0,
+    next_state: :running
   )
     super()
 
@@ -58,5 +59,6 @@ class ConfiguratorMemory < Lifecycle::VmMemory
     @generated_templates = generated_templates
     @services_to_reload = services_to_reload
     @last_refresh_time = last_refresh_time
+    @next_state = next_state
   end
 end
