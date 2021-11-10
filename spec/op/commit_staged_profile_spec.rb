@@ -38,4 +38,19 @@ RSpec.describe Op::CommitStagedProfile do
       applying_profile: nil,
     )
   end
+
+  context 'when no profile is being applied' do
+    let(:applying_profile) { nil }
+
+    it 'does not error' do
+      expect(result.errors?).to be false
+    end
+
+    it 'does not update state' do
+      expect(state).to have_attributes(
+        applied_profiles: applied_profiles,
+        applying_profile: nil
+      )
+    end
+  end
 end
