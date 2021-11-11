@@ -28,7 +28,18 @@ module Op
       return if response.nil? || errors?
       loaded_version = response.configuration_version
 
-      return if loaded_version == profile_version
+      if loaded_version == profile_version
+        logger&.warning(
+          :no_update,
+          name: profile_name, version: profile_version
+        )
+        return
+      end
+
+      logger&.notice(
+        :updated_profile,
+        name: profile_name, previous_version: profile_version, new_version: loaded_version
+      )
 
       self.applying_profile = LoadedProfile.new(
         profile_name, loaded_version, response.content.read, response.content_type

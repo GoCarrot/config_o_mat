@@ -19,7 +19,8 @@ RSpec.describe Op::RefreshProfile do
       profile_defs: profile_defs,
       client_id: client_id,
       applying_profile: applying_profile,
-      appconfig_client: client_stub
+      appconfig_client: client_stub,
+      logger: logger
     )
   end
 
@@ -50,11 +51,30 @@ RSpec.describe Op::RefreshProfile do
     end
   end
 
+  let(:logger) { nil }
+
   context 'when the profile is updated' do
     it 'updates applying_profile' do
       expect(state.applying_profile).to eq(
         LoadedProfile.new(:source0, '2', { answer: 42 }.to_json, 'application/json')
       )
+    end
+
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      it 'logs the update' do
+        expect(@messages).to include(
+          contain_exactly(
+            :notice, :updated_profile, a_hash_including(name: :source0, previous_version: '1', new_version: '2')
+          )
+        )
+      end
     end
   end
 
@@ -71,6 +91,23 @@ RSpec.describe Op::RefreshProfile do
 
     it 'does not error' do
       expect(result.errors?).to be false
+    end
+
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      it 'logs a warning' do
+        expect(@messages).to include(
+          contain_exactly(
+            :warning, :no_update, a_hash_including(name: :source0, version: '1')
+          )
+        )
+      end
     end
   end
 

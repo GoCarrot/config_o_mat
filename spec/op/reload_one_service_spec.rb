@@ -33,7 +33,8 @@ RSpec.describe Op::ReloadOneService do
     ConfiguratorMemory.new(
       runtime_directory: runtime_directory,
       service_defs: service_defs,
-      services_to_reload: services_to_reload
+      services_to_reload: services_to_reload,
+      logger: logger
     )
   end
 
@@ -47,6 +48,7 @@ RSpec.describe Op::ReloadOneService do
 
   let(:services_to_reload) { %i[service0 service1] }
   let(:touch_files) { [] }
+  let(:logger) { nil }
 
   context 'without a reload file present' do
     it 'touches the reload file' do
@@ -70,6 +72,21 @@ RSpec.describe Op::ReloadOneService do
     it 'updates services_to_reload' do
       expect(state).to have_attributes(
         services_to_reload: %i[service0]
+      )
+    end
+  end
+
+  context 'with a logger' do
+    let(:logger) do
+      @messages = []
+      l = LogsForMyFamily::Logger.new
+      l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+      l
+    end
+
+    it 'logs a service reload' do
+      expect(@messages).to include(
+        contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other'))
       )
     end
   end

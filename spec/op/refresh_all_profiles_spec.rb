@@ -19,7 +19,8 @@ RSpec.describe Op::RefreshAllProfiles do
       profile_defs: profile_defs,
       applied_profiles: applied_profiles,
       client_id: client_id,
-      appconfig_client: client_stub
+      appconfig_client: client_stub,
+      logger: logger
     )
   end
 
@@ -56,6 +57,7 @@ RSpec.describe Op::RefreshAllProfiles do
   end
 
   let(:client_id) { SecureRandom.uuid }
+  let(:logger) { nil }
 
   context 'when all profiles refresh' do
     it 'includes versions for applied profiles' do
@@ -83,6 +85,28 @@ RSpec.describe Op::RefreshAllProfiles do
 
     it 'sets last refresh time' do
       expect(state.last_refresh_time).to be_within(1).of(Time.now.to_i)
+    end
+
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      RSpec::Matchers.define_negated_matcher :an_array_excluding, :include
+
+      it 'logs updated profiles' do
+        expect(@messages).to include(
+          contain_exactly(
+            :notice, :updated_profile, a_hash_including(name: :source1, previous_version: '1', new_version: '2')
+          ),
+          contain_exactly(
+            :notice, :updated_profile, a_hash_including(name: :source2, previous_version: nil, new_version: '1')
+          )
+        ).and(an_array_excluding(include(a_hash_including(name: :source0))))
+      end
     end
   end
 
