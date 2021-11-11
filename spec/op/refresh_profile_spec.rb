@@ -5,6 +5,9 @@ require 'op/refresh_profile'
 require 'configurator_memory'
 require 'configurator_types'
 
+require 'aws-sdk-appconfig'
+require 'logsformyfamily'
+
 RSpec.describe Op::RefreshProfile do
   def perform
     described_class.call(state)

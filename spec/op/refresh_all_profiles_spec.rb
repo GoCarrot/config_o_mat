@@ -5,6 +5,11 @@ require 'op/refresh_all_profiles'
 require 'configurator_memory'
 require 'configurator_types'
 
+require 'aws-sdk-appconfig'
+require 'logsformyfamily'
+
+require 'securerandom'
+
 RSpec.describe Op::RefreshAllProfiles do
   def perform
     described_class.call(state)

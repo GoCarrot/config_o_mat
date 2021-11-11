@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require 'op/generate_all_templates'
+require 'op/compile_templates'
 
 require 'configurator_memory'
 require 'configurator_types'
+
+require 'logsformyfamily'
 
 require 'tmpdir'
 

@@ -5,6 +5,8 @@ require 'cond/retries_left'
 require 'configurator_memory'
 require 'configurator_types'
 
+require 'logsformyfamily'
+
 RSpec.describe Cond::RetriesLeft do
   def perform
     described_class.call(state)

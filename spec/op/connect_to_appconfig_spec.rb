@@ -4,6 +4,8 @@ require 'op/connect_to_appconfig'
 
 require 'configurator_memory'
 
+require 'logsformyfamily'
+
 RSpec.describe Op::ConnectToAppconfig do
   def perform
     described_class.call(state)

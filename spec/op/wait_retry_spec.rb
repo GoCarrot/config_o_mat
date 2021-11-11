@@ -4,6 +4,8 @@ require 'op/wait_retry'
 
 require 'configurator_memory'
 
+require 'logsformyfamily'
+
 RSpec.describe Op::WaitRetry do
   def perform
     described_class.call(state)

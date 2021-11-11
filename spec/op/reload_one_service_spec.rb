@@ -5,6 +5,8 @@ require 'op/reload_one_service'
 require 'configurator_memory'
 require 'configurator_types'
 
+require 'logsformyfamily'
+
 require 'tmpdir'
 
 RSpec.describe Op::ReloadOneService do
