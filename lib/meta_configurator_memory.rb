@@ -3,7 +3,7 @@
 require 'lifecycle/vm_memory'
 
 class MetaConfiguratorMemory < Lifecycle::VmMemory
-  attr_accessor :argv, :env, :early_exit, :configuration_directory,
+  attr_accessor :argv, :env, :early_exit, :configuration_directory, :runtime_directory,
                 :systemd_directory, :logs_directory, :profile_defs,
                 :template_defs, :service_defs, :dependencies, :refresh_interval,
                 :client_id, :retry_count, :retries_left, :retry_wait,
@@ -14,6 +14,7 @@ class MetaConfiguratorMemory < Lifecycle::VmMemory
     env: {},
     early_exit: false,
     configuration_directory: nil,
+    runtime_directory: nil,
     logs_directory: nil,
     systemd_directory: nil,
     profile_defs: {},
@@ -34,6 +35,7 @@ class MetaConfiguratorMemory < Lifecycle::VmMemory
     @env = env
     @early_exit = early_exit
     @configuration_directory = configuration_directory
+    @runtime_directory = runtime_directory
     @logs_directory = logs_directory
     @systemd_directory = systemd_directory
     @profile_defs = profile_defs

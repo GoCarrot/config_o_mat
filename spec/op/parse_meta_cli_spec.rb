@@ -21,6 +21,7 @@ RSpec.describe Op::ParseMetaCli do
   let(:env) do
     {
       'CONFIGURATION_DIRECTORY' => '/etc/configurator',
+      'RUNTIME_DIRECTORY' => '/run/configurator',
       'LOGS_DIRECTORY' => '/var/log/configurator'
     }
   end
@@ -77,6 +78,20 @@ RSpec.describe Op::ParseMetaCli do
     end
   end
 
+  context 'when RUNTIME_DIRECTORY is set in env' do
+    it 'sets the runtime_directory to the env value' do
+      expect(state.runtime_directory).to eq '/run/configurator'
+    end
+
+    context 'when runtime directory is set on the command line' do
+      let(:argv) { %w[-r /somewhere/else] }
+
+      it 'prefers the cli value' do
+        expect(state.runtime_directory).to eq '/somewhere/else'
+      end
+    end
+  end
+
   context 'when LOGS_DIRECTORY is set in env' do
     it 'sets the logs_directory to the env value' do
       expect(state.logs_directory).to eq '/var/log/configurator'
@@ -100,6 +115,22 @@ RSpec.describe Op::ParseMetaCli do
 
     it 'indicates that the configuration directory is required' do
       expect(result.errors).to have_key :configuration_directory
+    end
+  end
+
+  context 'when no runtime directory is set' do
+    let(:env) do
+      {
+        'CONFIGURATION_DIRECTORY' => '/etc/configurator'
+      }
+    end
+
+    it 'errors' do
+      expect(result.errors?).to be true
+    end
+
+    it 'indicates that the runtime directory is required' do
+      expect(result.errors).to have_key :runtime_directory
     end
   end
 

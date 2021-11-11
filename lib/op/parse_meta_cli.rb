@@ -9,7 +9,7 @@ module Op
     DEFAULT_SYSTEMD_DIRECTORY = '/run/systemd/system'
 
     reads :argv, :env
-    writes :configuration_directory, :logs_directory, :systemd_directory, :early_exit
+    writes :configuration_directory, :runtime_directory, :logs_directory, :systemd_directory, :early_exit
 
     # Add expand_path to string because the safe accessor is nice to use.
     module CoreExt
@@ -43,6 +43,13 @@ module Op
         end
 
         opts.on(
+          '-r', '--runtime-directory directory',
+          'Use the given directory for writing templates instead of $RUNTIME_DIRECTORY'
+        ) do |dir|
+          self.runtime_directory = dir
+        end
+
+        opts.on(
           '-l', '--logs-directory directory',
           'Use the given directory for writing log files instead of $LOGS_DIRECTORY'
         ) do |dir|
@@ -60,6 +67,7 @@ module Op
       parser.parse(argv)
 
       self.configuration_directory ||= env['CONFIGURATION_DIRECTORY']
+      self.runtime_directory ||= env['RUNTIME_DIRECTORY']
       self.logs_directory ||= env['LOGS_DIRECTORY']
       self.systemd_directory ||= DEFAULT_SYSTEMD_DIRECTORY
 
@@ -72,6 +80,8 @@ module Op
       if configuration_directory.nil? || configuration_directory.empty?
         error :configuration_directory, 'must be present'
       end
+
+      error :runtime_directory, 'must be present' if runtime_directory.nil? || runtime_directory.empty?
     end
   end
 end
