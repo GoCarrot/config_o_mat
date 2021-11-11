@@ -2,12 +2,14 @@
 
 require 'lifecycle/vm_memory'
 
+require 'meta_configurator_types'
+
 class MetaConfiguratorMemory < Lifecycle::VmMemory
   attr_accessor :argv, :env, :early_exit, :configuration_directory, :runtime_directory,
                 :systemd_directory, :logs_directory, :profile_defs,
                 :template_defs, :service_defs, :dependencies, :refresh_interval,
                 :client_id, :retry_count, :retries_left, :retry_wait,
-                :region
+                :region, :systemd_interface
 
   def initialize(
     argv: [],
@@ -27,7 +29,8 @@ class MetaConfiguratorMemory < Lifecycle::VmMemory
     retry_count: 3,
     retries_left: 3,
     retry_wait: 2,
-    region: nil
+    region: nil,
+    systemd_interface: SystemdInterface.new
   )
     super()
 
@@ -49,5 +52,6 @@ class MetaConfiguratorMemory < Lifecycle::VmMemory
     @retries_left = retries_left
     @retry_wait = retry_wait
     @region = region
+    @systemd_interface = systemd_interface
   end
 end
