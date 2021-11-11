@@ -1,0 +1,41 @@
+[Unit]
+Description=Teak Configurator
+Requires=network.target
+After=network.target
+
+[Service]
+Slice=teak-services.slice
+ReadOnlyPaths=/
+ProtectSystem=strict
+RuntimeDirectory=teak-configurator
+LogsDirectory=teak-configurator
+ConfigurationDirectory=teak-configurator
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectClock=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RemoveIPC=yes
+UMask=0077
+
+SystemCallArchitectures=native
+SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @privileged @raw-io @reboot @resources @swap
+
+CapabilityBoundingSet=
+RestrictAddressFamilies=~AF_NETLINK AF_PACKET
+RestrictNamespaces=yes
+
+DynamicUser=true
+Type=simple
+ExecStart=/opt/teak-configurator/bin/configurator
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
