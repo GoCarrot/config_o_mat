@@ -10,7 +10,7 @@ module Op
     writes :appconfig_client
 
     def call
-      client_opts = {}
+      client_opts = { logger: logger }
       client_opts[:region] = region if region
 
       self.appconfig_client = Aws::AppConfig::Client.new(client_opts)

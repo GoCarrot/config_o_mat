@@ -19,6 +19,7 @@ RSpec.describe Op::ConnectToAppconfig do
   let(:state) do
     ConfiguratorMemory.new(
       region: region,
+      logger: logger
     )
   end
 
@@ -27,6 +28,7 @@ RSpec.describe Op::ConnectToAppconfig do
   end
 
   let(:region) { nil }
+  let(:logger) { nil }
 
   it 'uses the default region' do
     expect(Aws::AppConfig::Client).to have_received(:new).with(hash_excluding(:region))
@@ -37,6 +39,14 @@ RSpec.describe Op::ConnectToAppconfig do
 
     it 'uses the configured region' do
       expect(Aws::AppConfig::Client).to have_received(:new).with(a_hash_including(region: region))
+    end
+  end
+
+  context 'with a logger' do
+    let(:logger) { LogsForMyFamily::Logger.new }
+
+    it 'passes the logger to the client' do
+      expect(Aws::AppConfig::Client).to have_received(:new).with(a_hash_including(logger: logger))
     end
   end
 end
