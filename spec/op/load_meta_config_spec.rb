@@ -80,7 +80,8 @@ RSpec.describe Op::LoadMetaConfig do
         )),
         retry_count: 6,
         retries_left: 6,
-        retry_wait: 12
+        retry_wait: 12,
+        region: 'us-east-1'
       )
     end
   end
@@ -147,7 +148,8 @@ RSpec.describe Op::LoadMetaConfig do
         ),
         retry_count: 3,
         retries_left: 3,
-        retry_wait: 2
+        retry_wait: 2,
+        region: nil
       )
     end
 

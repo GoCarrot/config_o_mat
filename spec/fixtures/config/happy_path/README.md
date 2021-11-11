@@ -5,6 +5,7 @@ client_id: bar
 refresh_interval: 20
 retry_count: 6
 retry_wait: 12
+region: us-east-1
 
 services:
   test0:

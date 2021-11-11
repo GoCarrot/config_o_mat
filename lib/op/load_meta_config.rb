@@ -48,7 +48,7 @@ module Op
     reads :configuration_directory, :logs_directory, :env
     writes :profile_defs, :template_defs, :service_defs, :dependencies,
            :refresh_interval, :client_id, :logger, :retry_count, :retries_left,
-           :retry_wait
+           :retry_wait, :region
 
     def call
       default_config = {
@@ -58,7 +58,8 @@ module Op
         retry_wait: 2,
         services: [],
         templates: [],
-        profiles: []
+        profiles: [],
+        region: nil
       }
 
       # TODO: I would like to make this configurable. I think the trick
@@ -143,6 +144,7 @@ module Op
       self.retry_count = merged_config[:retry_count]
       self.retries_left = retry_count
       self.retry_wait = merged_config[:retry_wait]
+      self.region = merged_config[:region]
 
       self.dependencies = service_defs.each_with_object({}) do |(name, service), template_to_services|
         service.templates.each do |template|

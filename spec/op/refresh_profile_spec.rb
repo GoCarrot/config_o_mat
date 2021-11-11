@@ -10,10 +10,7 @@ RSpec.describe Op::RefreshProfile do
     described_class.call(state)
   end
 
-  before do
-    allow(Aws::AppConfig::Client).to receive(:new).and_return(client_stub)
-    @result = perform
-  end
+  before { @result = perform }
 
   subject(:result) { @result }
 
@@ -21,7 +18,8 @@ RSpec.describe Op::RefreshProfile do
     ConfiguratorMemory.new(
       profile_defs: profile_defs,
       client_id: client_id,
-      applying_profile: applying_profile
+      applying_profile: applying_profile,
+      appconfig_client: client_stub
     )
   end
 
@@ -51,7 +49,6 @@ RSpec.describe Op::RefreshProfile do
       )
     end
   end
-
 
   context 'when the profile is updated' do
     it 'updates applying_profile' do

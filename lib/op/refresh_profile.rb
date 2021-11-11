@@ -4,11 +4,10 @@ require 'lifecycle/op_base'
 
 module Op
   class RefreshProfile < Lifecycle::OpBase
-    reads :profile_defs, :client_id, :applying_profile
+    reads :profile_defs, :client_id, :applying_profile, :appconfig_client
     writes :applying_profile
 
     def call
-      client = Aws::AppConfig::Client.new
       profile_name = applying_profile.name
       profile_version = applying_profile.version
       definition = profile_defs[profile_name]
@@ -20,7 +19,7 @@ module Op
 
       response =
         begin
-          client.get_configuration(request)
+          appconfig_client.get_configuration(request)
         rescue StandardError => e
           error profile_name, e
           nil

@@ -22,7 +22,9 @@ class Configurator < Lifecycle::VM
 
   on :reading_meta_config, do: Op::LoadMetaConfig, then: :compiling_templates
 
-  on :compiling_templates, do: Op::CompileTemplates, then: :refreshing_profiles
+  on :compiling_templates, do: Op::CompileTemplates, then: :connecting_to_appconfig
+
+  on :connecting_to_appconfig, do: Op::ConnectToAppconfig, then: :generating_templates
 
   on :refreshing_profiles,
      do: Op::RefreshAllProfiles,
