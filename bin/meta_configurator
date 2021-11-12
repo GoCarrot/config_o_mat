@@ -21,7 +21,7 @@ elsif log_level
   $stderr.puts("Unknown log level requested in CONFIGURATOR_LOG_LEVEL: #{log_level}")
 end
 
-memory = MetaConfigurator.new(argv: ARGV, env: ENV, logger: logger)
+memory = MetaConfiguratorMemory.new(argv: ARGV, env: ENV, logger: logger)
 vm = MetaConfigurator.new(memory)
 vm.call
 
