@@ -2,6 +2,8 @@
 
 require 'lifecycle/op_base'
 
+require 'sd_notify'
+
 module Op
   class NextTick < Lifecycle::OpBase
     PAUSE_INTERVAL = 1
@@ -11,6 +13,8 @@ module Op
 
     def call
       self.run_count += 1
+
+      SdNotify.watchdog
 
       # If we got here then our retry process has succeeded.
       self.retries_left = retry_count

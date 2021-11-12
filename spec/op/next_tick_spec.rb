@@ -10,6 +10,8 @@ RSpec.describe Op::NextTick do
   end
 
   before do
+    @notifier = class_double('SdNotify').as_stubbed_const(transfer_nested_constants: true)
+    allow(@notifier).to receive(:watchdog)
     allow(Kernel).to receive(:sleep) { |time| time.to_i }
     @result = perform
   end
@@ -44,6 +46,10 @@ RSpec.describe Op::NextTick do
         retries_left: retry_count
       )
     end
+
+    it 'notifies the systemd watchdog timer' do
+      expect(@notifier).to have_received(:watchdog)
+    end
   end
 
   context "when we are due to refresh profiles" do
@@ -59,6 +65,10 @@ RSpec.describe Op::NextTick do
         run_count: run_count + 1,
         retries_left: retry_count
       )
+    end
+
+    it 'notifies the systemd watchdog timer' do
+      expect(@notifier).to have_received(:watchdog)
     end
   end
 end
