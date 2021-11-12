@@ -24,7 +24,7 @@ class Configurator < Lifecycle::VM
 
   on :compiling_templates, do: Op::CompileTemplates, then: :connecting_to_appconfig
 
-  on :connecting_to_appconfig, do: Op::ConnectToAppconfig, then: :generating_templates
+  on :connecting_to_appconfig, do: Op::ConnectToAppconfig, then: :refreshing_profiles
 
   on :refreshing_profiles,
      do: Op::RefreshAllProfiles,
