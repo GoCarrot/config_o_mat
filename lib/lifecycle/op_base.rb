@@ -40,6 +40,9 @@ module Lifecycle
     def self.call(state)
       obj = allocate
 
+      @reads ||= {}
+      @writes ||= {}
+
       @reads&.each do |(attribute, ivar)|
         raise InvalidAttr.new(self, attribute) unless state.respond_to?(attribute)
 
