@@ -157,7 +157,7 @@ module Op
             # it's quite possible that a service could inadvertently declare the same
             # dependency twice in a way that's not easy to untangle.
             template_to_services[template] ||= Set.new
-            template_to_services[template] << service
+            template_to_services[template] << name
           end
         end
       end

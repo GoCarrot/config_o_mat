@@ -68,9 +68,9 @@ RSpec.describe Op::LoadMetaConfig do
         template_defs: match(templates),
         service_defs: match(services),
         dependencies: match({
-          templ0: Set.new([services[:test0], services[:test1], services[:test2]]),
-          templ1: Set.new([services[:test0]]),
-          templ2: Set.new([services[:test0], services[:test1]])
+          templ0: Set.new([:test0, :test1, :test2]),
+          templ1: Set.new([:test0]),
+          templ2: Set.new([:test0, :test1])
         }),
         refresh_interval: 20,
         client_id: 'bar',
