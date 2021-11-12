@@ -43,7 +43,9 @@ RestrictAddressFamilies=~AF_NETLINK AF_PACKET
 RestrictNamespaces=yes
 
 DynamicUser=true
-Type=simple
+
+NotifyAccess=main
+Type=notify
 ExecStart=/opt/teak-configurator/bin/configurator
 Restart=always
 
