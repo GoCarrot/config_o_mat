@@ -44,6 +44,8 @@ RestrictNamespaces=yes
 
 DynamicUser=true
 
+WatchdogSec=60
+
 NotifyAccess=main
 Type=notify
 ExecStart=/opt/teak-configurator/bin/configurator
