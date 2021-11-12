@@ -8,6 +8,15 @@ Slice=teak-services.slice
 ReadOnlyPaths=/
 ProtectSystem=strict
 RuntimeDirectory=teak-configurator
+# We use files in our runtime directory to both indicate to systemd that services should
+# be restarted and to provide "credential" data to systemd services. If systemd nukes that
+# directory it will see changes to the files we touch to restart services, and so restart the
+# services. When the services restart, they will try to load their "credential" data, which will
+# also be absent. This takes down all the services.
+#
+# I would prefer that things continue operating even if the configurator dies -- we can find other
+# mechanisms to mark a server as unhealthy if it can no longer get new config data.
+RuntimeDirectoryPreserve=yes
 LogsDirectory=teak-configurator
 ConfigurationDirectory=teak-configurator
 WorkingDirectory=/opt/teak-configurator
