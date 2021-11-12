@@ -42,7 +42,7 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk-appconfig (~> 1.18)
-  logsformyfamily
+  logsformyfamily (~> 0.2)
   rspec (~> 3.10)
   simplecov (~> 0.21)
 
