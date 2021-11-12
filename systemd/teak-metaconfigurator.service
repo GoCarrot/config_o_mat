@@ -1,7 +1,9 @@
 [Unit]
 Description=Teak Meta Configurator (Configures systemd for the configurator)
-Requires=network.target
-After=network.target
+DefaultDependencies=no
+Wants=cloud-config.target
+After=cloud-config.target
+Before=sysinit.target
 
 [Service]
 Slice=teak-services.slice
@@ -11,6 +13,7 @@ ProtectSystem=full
 RuntimeDirectory=teak-configurator
 LogsDirectory=teak-configurator
 ConfigurationDirectory=teak-configurator
+WorkingDirectory=/opt/teak-configurator
 
 NoNewPrivileges=yes
 PrivateTmp=yes
@@ -28,7 +31,7 @@ RemoveIPC=yes
 UMask=0077
 
 SystemCallArchitectures=native
-SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @privileged @raw-io @reboot @resources @swap
+SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @raw-io @reboot @resources @swap
 
 CapabilityBoundingSet=
 RestrictAddressFamilies=none
