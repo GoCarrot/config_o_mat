@@ -38,9 +38,6 @@ module Lifecycle
     end
 
     def self.call(state)
-      # If we have SdNotify loaded then fire the watchdog every time we execute an op.
-      SdNotify.watchdog if defined?(SdNotify)
-
       obj = allocate
 
       @reads ||= {}

@@ -247,6 +247,9 @@ module Lifecycle
     end
 
     def do_op(state)
+      # If we have SdNotify loaded then fire the watchdog every time we execute an op.
+      SdNotify.watchdog if defined?(SdNotify)
+
       self.current_op = state.op&.call(memory)
 
       if current_op&.errors?
