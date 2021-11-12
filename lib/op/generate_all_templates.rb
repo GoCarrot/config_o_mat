@@ -42,6 +42,8 @@ module Op
         end
 
         services_to_reload.uniq!
+
+        logger&.notice(:scheduled_restarts, services: services_to_reload)
       end
     end
   end

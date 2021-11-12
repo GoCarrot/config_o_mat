@@ -132,7 +132,7 @@ RSpec.describe Op::GenerateAllTemplates do
       end
 
       it 'logs changed templates' do
-        expect(@messages).to contain_exactly(
+        expect(@messages).to include(
           contain_exactly(
             :notice, :template_update,
             a_hash_including(template: :templ0, file: File.join(runtime_directory, template_defs[:templ0].dst))
