@@ -31,6 +31,7 @@ RSpec.describe Op::LoadMetaConfig do
   let(:logger) { LogsForMyFamily::Logger.new }
 
   context 'with the happy path' do
+    let(:logger) { nil }
     let(:configuration_directory) { 'happy_path' }
 
     it 'loads configuration' do
@@ -83,6 +84,79 @@ RSpec.describe Op::LoadMetaConfig do
         retry_wait: 12,
         region: 'us-east-1'
       )
+    end
+
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      it 'logs the config to be applied' do
+        expect(@messages).to include(
+          contain_exactly(
+            :info, :parsed_config, a_hash_including(
+              configuration: {
+                log_level: 'debug', refresh_interval: 20, retry_count: 6, retry_wait: 12, region: 'us-east-1', client_id: 'bar',
+                services: {
+                  test0: {
+                    systemd_unit: 'test0',
+                    restart_mode: 'flip_flop',
+                    templates: %w[templ0 templ1 templ2]
+                  },
+                  test1: {
+                    systemd_unit: 'test1',
+                    restart_mode: 'restart',
+                    templates: %w[templ0 templ2]
+                  },
+                  test2: {
+                    systemd_unit: 'test2',
+                    restart_mode: 'restart',
+                    templates: %w[templ0]
+                  }
+                },
+                templates: {
+                  templ0: {
+                    src: 'foo2.conf',
+                    dst: 'foo.conf'
+                  },
+                  templ1: {
+                    src: 'bar.conf',
+                    dst: 'bar.conf'
+                  },
+                  templ2: {
+                    src: 'baz.conf',
+                    dst: 'baz.conf'
+                  },
+                  templ3: {
+                    src: '3.conf',
+                    dst: '3.conf'
+                  }
+                },
+                profiles: {
+                  source0: {
+                    application: 'test',
+                    environment: 'test',
+                    profile: 'test'
+                  },
+                  source1: {
+                    application: 'bar',
+                    environment: 'test',
+                    profile: 'test'
+                  },
+                  source2: {
+                    application: 'baz',
+                    environment: 'baz',
+                    profile: 'other'
+                  }
+                }
+              }
+            )
+          )
+        )
+      end
     end
   end
 

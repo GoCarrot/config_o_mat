@@ -105,6 +105,8 @@ module Op
         end
       end
 
+      logger&.info(:parsed_config, configuration: merged_config)
+
       self.service_defs = instantiate.call(:services, Service)
       self.template_defs = instantiate.call(:templates, Template)
       self.profile_defs = instantiate.call(:profiles, Profile)
