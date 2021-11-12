@@ -49,7 +49,15 @@ class Configurator < Lifecycle::VM
 
   on :applying_profile, do: Op::StageOneProfile, then: :generating_templates
 
-  on :generating_templates, do: Op::GenerateAllTemplates, then: :reloading_services
+  on :generating_templates, do: Op::GenerateAllTemplates, then: {
+    case: Cond::FirstRun,
+    when: {
+      true => :notifying_systemd,
+      false => :reloading_services
+    }
+  }
+
+  on :notifying_systemd, do: Op::NotifySystemdStart, then: :running
 
   on :reloading_services,
      then: {
