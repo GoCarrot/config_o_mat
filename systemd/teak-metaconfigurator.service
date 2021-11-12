@@ -8,7 +8,9 @@ Before=sysinit.target
 [Service]
 Slice=teak-services.slice
 ReadOnlyPaths=/
-ReadWritePaths=/run
+
+# We persist systemd dropins and other config, so make sure that's writeable
+ReadWritePaths=/run/systemd/system
 ProtectSystem=full
 RuntimeDirectory=teak-configurator
 LogsDirectory=teak-configurator

@@ -1,7 +1,7 @@
 [Unit]
 Description=Teak Configurator
-Requires=teak-metaconfigurator.service
-After=teak-metaconfigurator.service
+Requires=teak-metaconfigurator.service network.target
+After=teak-metaconfigurator.service network.target
 
 [Service]
 Slice=teak-services.slice
