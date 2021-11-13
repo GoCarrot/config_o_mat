@@ -40,7 +40,7 @@ RestrictNamespaces=yes
 
 User=root
 Type=oneshot
-ExecStart=/opt/teak-configurator/bin/meta_configurator
+ExecStart=bundle2.7 exec /opt/teak-configurator/bin/meta_configurator
 RemainAfterExit=yes
 
 [Install]
