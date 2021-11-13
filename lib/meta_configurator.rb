@@ -7,7 +7,7 @@ require 'meta_configurator_memory'
 require 'op/parse_meta_cli'
 require 'cond/early_exit'
 require 'op/load_meta_config'
-require 'op/generating_systemd_config'
+require 'op/generate_systemd_config'
 
 class MetaConfigurator < Lifecycle::VM
   VERSION = "0.0.1"

@@ -6,7 +6,6 @@ After=cloud-config.target
 Before=sysinit.target
 
 [Service]
-Slice=teak-services.slice
 ReadOnlyPaths=/
 
 # We persist systemd dropins and other config, so make sure that's writeable
