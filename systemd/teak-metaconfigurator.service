@@ -1,9 +1,5 @@
 [Unit]
 Description=Teak Meta Configurator (Configures systemd for the configurator)
-DefaultDependencies=no
-Wants=cloud-config.target
-After=cloud-config.target
-Before=sysinit.target
 
 [Service]
 ReadOnlyPaths=/
