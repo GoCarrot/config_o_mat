@@ -134,16 +134,16 @@ module Op
           StdoutLogWriter.new
         end
 
-      # If we couldn't initialize everything then it's probably not worth exploding
-      # on any missing dependencies -- that's an obvious consquence, and the addiitional
-      # noise might mask the root cause.
-      return if errors?
-
       logger.filter_level(log_level) if log_level
       logger.backends = [backend]
 
       # Re-log our merged config with our configured logger.
       logger.info(:parsed_config, configuration: merged_config)
+
+      # If we couldn't initialize everything then it's probably not worth exploding
+      # on any missing dependencies -- that's an obvious consquence, and the addiitional
+      # noise might mask the root cause.
+      return if errors?
 
       self.refresh_interval = merged_config[:refresh_interval]
       self.client_id = merged_config[:client_id]
