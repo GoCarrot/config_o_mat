@@ -42,8 +42,6 @@ CapabilityBoundingSet=
 RestrictAddressFamilies=~AF_NETLINK AF_PACKET
 RestrictNamespaces=yes
 
-DynamicUser=true
-
 WatchdogSec=60
 
 NotifyAccess=main
