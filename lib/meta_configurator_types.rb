@@ -3,7 +3,7 @@
 class SystemdInterface
   def enable_restart_paths(units)
     units.each do |unit|
-      `systemctl enable teak-configurator-restart-service@#{unit}.path`
+      `systemctl enable --runtime teak-configurator-restart-service@#{unit}.path`
     end
   end
 
