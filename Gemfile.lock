@@ -16,7 +16,7 @@ GEM
     diff-lcs (1.4.4)
     docile (1.4.0)
     jmespath (1.4.0)
-    logsformyfamily (0.2.1)
+    logsformyfamily (0.2.2)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
       rspec-expectations (~> 3.10.0)
