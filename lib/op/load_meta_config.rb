@@ -44,6 +44,7 @@ module Op
     using DeepMerge
 
     LOG_TYPES = %i[stdout file].freeze
+    LOG_CONFIG_KEYS = %i[log_level log_type log_file].freeze
 
     reads :configuration_directory, :logs_directory, :env
     writes :profile_defs, :template_defs, :service_defs, :dependencies,
@@ -105,7 +106,7 @@ module Op
         end
       end
 
-      logger&.info(:parsed_config, configuration: merged_config)
+      logger&.info(:log_config, configuration: merged_config.slice(*LOG_CONFIG_KEYS))
 
       self.service_defs = instantiate.call(:services, Service)
       self.template_defs = instantiate.call(:templates, Template)
@@ -140,6 +141,9 @@ module Op
 
       logger.filter_level(log_level) if log_level
       logger.backends = [backend]
+
+      # Re-log our merged config with our configured logger.
+      logger.info(:parsed_config, configuration: merged_config)
 
       self.refresh_interval = merged_config[:refresh_interval]
       self.client_id = merged_config[:client_id]

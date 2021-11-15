@@ -10,7 +10,12 @@ RSpec.describe Op::LoadMetaConfig do
     described_class.call(state)
   end
 
-  before { @result = perform }
+  before do
+    @new_logger_messages = []
+    @stdout_logger_proc =  proc { |level_name, event_type, merged_data| @new_logger_messages << [level_name, event_type, merged_data] }
+    allow(StdoutLogWriter).to receive(:new).and_return(@stdout_logger_proc)
+    @result = perform
+  end
 
   subject(:result) { @result }
 
@@ -77,7 +82,7 @@ RSpec.describe Op::LoadMetaConfig do
         client_id: 'bar',
         logger: an_instance_of(LogsForMyFamily::Logger).and(have_attributes(
           level: :debug,
-          backends: contain_exactly(an_instance_of(StdoutLogWriter))
+          backends: contain_exactly(@stdout_logger_proc)
         )),
         retry_count: 6,
         retries_left: 6,
@@ -94,12 +99,30 @@ RSpec.describe Op::LoadMetaConfig do
         l
       end
 
-      it 'logs the config to be applied' do
+
+      it 'logs the log config to be applied' do
         expect(@messages).to include(
+          contain_exactly(
+            :info, :log_config, a_hash_including(
+              configuration: {
+                log_level: 'debug'
+              }
+            )
+          )
+        )
+      end
+
+      it 'logs the config to be applied to the configured new_logger_messages' do
+        expect(@new_logger_messages).to include(
           contain_exactly(
             :info, :parsed_config, a_hash_including(
               configuration: {
-                log_level: 'debug', refresh_interval: 20, retry_count: 6, retry_wait: 12, region: 'us-east-1', client_id: 'bar',
+                client_id: 'bar',
+                log_level: 'debug',
+                refresh_interval: 20,
+                retry_count: 6,
+                retry_wait: 12,
+                region: 'us-east-1',
                 services: {
                   test0: {
                     systemd_unit: 'test0',
@@ -218,7 +241,7 @@ RSpec.describe Op::LoadMetaConfig do
         refresh_interval: 5,
         client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/),
         logger: have_attributes(
-          backends: [an_instance_of(StdoutLogWriter)]
+          backends: [@stdout_logger_proc]
         ),
         retry_count: 3,
         retries_left: 3,
