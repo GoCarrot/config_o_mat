@@ -35,7 +35,7 @@ SystemCallArchitectures=native
 SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @raw-io @reboot @resources @swap
 
 CapabilityBoundingSet=
-RestrictAddressFamilies=none
+RestrictAddressFamilies=AF_UNIX
 RestrictNamespaces=yes
 
 User=root
