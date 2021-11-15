@@ -17,6 +17,7 @@ RuntimeDirectory=teak-configurator
 # I would prefer that things continue operating even if the configurator dies -- we can find other
 # mechanisms to mark a server as unhealthy if it can no longer get new config data.
 RuntimeDirectoryPreserve=yes
+RuntimeDirectoryMode=0700
 LogsDirectory=teak-configurator
 ConfigurationDirectory=teak-configurator
 WorkingDirectory=/opt/teak-configurator
