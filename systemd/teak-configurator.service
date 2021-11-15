@@ -33,7 +33,7 @@ RestrictSUIDSGID=yes
 RestrictRealtime=yes
 LockPersonality=yes
 RemoveIPC=yes
-UMask=0077
+UMask=0033
 
 SystemCallArchitectures=native
 SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @raw-io @reboot @resources @swap
