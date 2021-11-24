@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'op/parse_meta_cli'
 
 require 'meta_configurator_memory'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'configurator_memory'
 require 'op/parse_cli'
 
