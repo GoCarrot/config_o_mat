@@ -14,11 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'cond/next_state'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+require 'configurator_memory'
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+RSpec.describe Cond::NextState do
+  def perform
+    described_class.call(state)
+  end
+
+  before { @result = perform }
+
+  subject(:result) { @result }
+
+  let(:state) do
+    ConfiguratorMemory.new(
+      next_state: next_state
+    )
+  end
+
+  let(:next_state) { %i[running refreshing_profiles].sample }
+
+  it 'returns the next state' do
+    expect(result).to eq next_state
+  end
+end

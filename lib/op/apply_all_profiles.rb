@@ -14,11 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Op
+  class ApplyAllProfiles < Lifecycle::OpBase
+    reads :profiles_to_apply, :applied_profiles
+    writes :profiles_to_apply, :applied_profiles
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      profiles_to_apply.each do |profile|
+        applied_profiles[profile.name] = profile
+        error profile.name, profile.errors if profile.errors?
+      end
+
+      self.profiles_to_apply = []
+    end
+  end
+end

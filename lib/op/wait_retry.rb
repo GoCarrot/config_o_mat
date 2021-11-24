@@ -14,11 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Op
+  class WaitRetry < Lifecycle::OpBase
+    reads :retry_wait, :retry_count, :retries_left
+    writes :retries_left
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      # Exponential backoff
+      wait = retry_wait * (2**(retry_count - retries_left))
+
+      # With jitter
+      wait += rand(retry_wait + 1) - (retry_wait / 2.0)
+
+      logger&.notice(:retry_wait, wait: wait)
+
+      # Calling Kernel.sleep directly for easy test stubbing
+      Kernel.sleep wait
+
+      self.retries_left -= 1
+    end
+  end
+end

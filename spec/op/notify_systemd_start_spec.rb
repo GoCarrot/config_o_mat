@@ -14,11 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'op/notify_systemd_start'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+RSpec.describe Op::NotifySystemdStart do
+  def perform
+    described_class.call(state)
+  end
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+  before do
+    @notifier = class_double('SdNotify').as_stubbed_const(transfer_nested_constants: true)
+    allow(@notifier).to receive(:ready)
+    @result = perform
+  end
+
+  subject(:result) { @result }
+
+  let(:state) do
+    ConfiguratorMemory.new()
+  end
+
+  it 'notifies systemd that we are ready' do
+    expect(@notifier).to have_received(:ready)
+  end
+end

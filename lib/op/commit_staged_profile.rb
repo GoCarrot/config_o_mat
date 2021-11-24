@@ -14,11 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Op
+  class CommitStagedProfile < Lifecycle::OpBase
+    reads :applied_profiles, :applying_profile
+    writes :applied_profiles, :applying_profile
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      # This happens in the first boot case, where we apply all profiles at once and so there's no
+      # individual applying_profile.
+      return if applying_profile.nil?
+
+      applied_profiles[applying_profile.name] = applying_profile
+      self.applying_profile = nil
+    end
+  end
+end

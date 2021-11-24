@@ -14,11 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+require 'aws-sdk-appconfig'
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+module Op
+  class ConnectToAppconfig < Lifecycle::OpBase
+    reads :region
+    writes :appconfig_client
+
+    def call
+      client_opts = { logger: logger }
+      client_opts[:region] = region if region
+
+      self.appconfig_client = Aws::AppConfig::Client.new(client_opts)
+    end
+  end
+end

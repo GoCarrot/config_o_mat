@@ -14,11 +14,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'cond/early_exit'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+require 'configurator_memory'
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+RSpec.describe Cond::EarlyExit do
+  def perform
+    described_class.call(state)
+  end
+
+  before { @result = perform }
+
+  subject(:result) { @result }
+
+  let(:state) do
+    ConfiguratorMemory.new(
+      early_exit: early_exit
+    )
+  end
+
+  context 'when early_exit is true' do
+    let(:early_exit) { true }
+
+    it 'returns true' do
+      expect(result).to be true
+    end
+  end
+
+  context 'when early_exit is false' do
+    let(:early_exit) { false }
+
+    it 'returns false' do
+      expect(result).to be false
+    end
+  end
+end

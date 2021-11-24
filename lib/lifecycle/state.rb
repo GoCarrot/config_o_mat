@@ -14,11 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/then'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Lifecycle
+  # Represents a state in the lifecycle.
+  # A state may optionally define a single operation to perform, and then must
+  # define which state to transition to next.
+  # Transitions may be conditional, controlled by a subclass of Lifecycle::CondBase
+  # @see Lifecycle::VM
+  # @see Lifecycle::OpBase
+  # @see Lifecycle::CondBase
+  class State
+    attr_reader :name, :op, :then
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def initialize(name, options)
+      @name = name
+      @op = options[:do]
+      @then = Then.new(options[:then]) if options.key?(:then)
+    end
+  end
+end

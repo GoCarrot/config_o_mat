@@ -14,11 +14,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'cond/first_run'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+require 'configurator_memory'
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+RSpec.describe Cond::FirstRun do
+  def perform
+    described_class.call(state)
+  end
+
+  before { @result = perform }
+
+  subject(:result) { @result }
+
+  let(:state) do
+    ConfiguratorMemory.new(
+      run_count: run_count
+    )
+  end
+
+  context 'when run_count is 0' do
+    let(:run_count) { 0 }
+
+    it 'returns true' do
+      expect(result).to be true
+    end
+  end
+
+  context 'when early_exit is greater than 0' do
+    let(:run_count) { rand(1_000_000) + 1 }
+
+    it 'returns false' do
+      expect(result).to be false
+    end
+  end
+end

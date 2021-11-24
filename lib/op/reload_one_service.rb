@@ -14,11 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Op
+  class ReloadOneService < Lifecycle::OpBase
+    reads :services_to_reload, :runtime_directory, :service_defs
+    writes :services_to_reload
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      service = services_to_reload.pop
+      service_def = service_defs[service]
+      unit = service_def.systemd_unit
+
+      file_path = File.join(runtime_directory, unit + '.restart')
+
+      logger&.notice(
+        :service_restart,
+        name: service, systemd_unit: unit, touched_path: file_path
+      )
+
+      FileUtils.touch(file_path)
+    end
+  end
+end

@@ -14,11 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Op
+  class StageOneProfile < Lifecycle::OpBase
+    reads :profiles_to_apply
+    writes :applying_profile, :profiles_to_apply
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      self.applying_profile = profiles_to_apply.pop
+
+      # We defer error checking to GenerateAllTemplates so that even if errored the profile gets set as
+      # the applying_profile, which simplifies retry logic.
+    end
+  end
+end

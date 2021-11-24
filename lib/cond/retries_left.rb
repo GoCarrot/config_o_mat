@@ -14,11 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle/cond_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Cond
+  class RetriesLeft < Lifecycle::CondBase
+    reads :error_op, :retries_left, :applying_profile
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      logger&.error(:op_failure, op: error_op.class.name, errors: error_op.errors)
+
+      # If we aren't currently applying a profile then there's nothing for us to retry.
+      return false if applying_profile.nil?
+
+      # If we're out of retries, well, no more retrying
+      return false if retries_left.zero?
+
+      true
+    end
+  end
+end
