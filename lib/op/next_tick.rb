@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 require 'sd_notify'
 
 module Op
-  class NextTick < Lifecycle::OpBase
+  class NextTick < LifecycleVM::OpBase
     PAUSE_INTERVAL = 1
 
     reads :last_refresh_time, :refresh_interval, :run_count, :retry_count

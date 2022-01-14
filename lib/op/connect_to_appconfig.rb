@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 require 'aws-sdk-appconfig'
 
 module Op
-  class ConnectToAppconfig < Lifecycle::OpBase
+  class ConnectToAppconfig < LifecycleVM::OpBase
     reads :region
     writes :appconfig_client
 

@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/cond_base'
+require 'lifecycle_vm/cond_base'
 
 module Cond
-  class ServicesToReload < Lifecycle::CondBase
+  class ServicesToReload < LifecycleVM::CondBase
     reads :services_to_reload
 
     def call

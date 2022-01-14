@@ -16,7 +16,7 @@
 
 require 'bundler/setup'
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 require 'configurator_types'
 
 require 'logsformyfamily'
@@ -25,7 +25,7 @@ require 'securerandom'
 require 'yaml'
 
 module Op
-  class LoadMetaConfig < Lifecycle::OpBase
+  class LoadMetaConfig < LifecycleVM::OpBase
     module DeepMerge
       refine Hash do
         def deep_merge(other)

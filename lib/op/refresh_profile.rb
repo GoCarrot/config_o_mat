@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 module Op
-  class RefreshProfile < Lifecycle::OpBase
+  class RefreshProfile < LifecycleVM::OpBase
     reads :profile_defs, :client_id, :applying_profile, :appconfig_client
     writes :applying_profile
 

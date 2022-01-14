@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 require 'fileutils'
 
 module Op
-  class GenerateSystemdConfig < Lifecycle::OpBase
+  class GenerateSystemdConfig < LifecycleVM::OpBase
     DROPIN_FILE_NAME = '99_teak_configurator.conf'
 
     reads :template_defs, :service_defs, :runtime_directory, :systemd_directory, :systemd_interface

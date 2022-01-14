@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 module Op
-  class GenerateAllTemplates < Lifecycle::OpBase
+  class GenerateAllTemplates < LifecycleVM::OpBase
     reads :template_defs, :dependencies, :applied_profiles, :applying_profile, :generated_templates,
           :compiled_templates, :runtime_directory
 

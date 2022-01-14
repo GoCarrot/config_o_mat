@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle'
+require 'lifecycle_vm'
 require 'op'
 require 'cond'
 require 'configurator_memory'
 
-class Configurator < Lifecycle::VM
+class Configurator < LifecycleVM::VM
   VERSION = "0.0.1"
 
   memory_class ConfiguratorMemory

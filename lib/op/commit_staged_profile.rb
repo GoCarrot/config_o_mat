@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 module Op
-  class CommitStagedProfile < Lifecycle::OpBase
+  class CommitStagedProfile < LifecycleVM::OpBase
     reads :applied_profiles, :applying_profile
     writes :applied_profiles, :applying_profile
 

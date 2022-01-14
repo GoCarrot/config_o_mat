@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/cond_base'
+require 'lifecycle_vm/cond_base'
 
 module Cond
-  class ProfilesToApply < Lifecycle::CondBase
+  class ProfilesToApply < LifecycleVM::CondBase
     reads :profiles_to_apply
 
     def call
