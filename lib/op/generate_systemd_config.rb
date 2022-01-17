@@ -26,24 +26,54 @@ module Op
 
     def call
       managed_units = []
-      service_defs.each do |(_, service)|
-        unit = service.systemd_unit
-        managed_units << unit
+      grouped_restart_modes = service_defs.values.group_by(&:restart_mode)
+      restarts = grouped_restart_modes[:restart]
+      flip_flops = grouped_restart_modes[:flip_flop]
 
-        dropin = %([Service]\n)
-        service.templates.each do |tmpl|
-          template = template_defs[tmpl.to_sym]
-          dropin += %(LoadCredential=#{template.dst}:#{File.join(runtime_directory, template.dst)}\n)
-        end
+      enable_restarts(restarts) if restarts
+      enable_flip_flops(flip_flops) if flip_flops
 
-        dropin_dir = File.join(systemd_directory, "#{unit}.service.d")
+      systemd_interface.daemon_reload
+    end
 
-        FileUtils.mkdir_p(dropin_dir)
-        File.open(File.join(dropin_dir, DROPIN_FILE_NAME), 'w') { |f| f.write(dropin) }
+  private
+
+    def write_dropin(unit, service)
+      dropin = %([Service]\n)
+      service.templates.each do |tmpl|
+        template = template_defs[tmpl.to_sym]
+        dropin += %(LoadCredential=#{template.dst}:#{File.join(runtime_directory, template.dst)}\n)
       end
 
-      systemd_interface.enable_restart_paths(managed_units)
-      systemd_interface.daemon_reload
+      dropin_dir = File.join(systemd_directory, "#{unit}.service.d")
+
+      FileUtils.mkdir_p(dropin_dir)
+      File.open(File.join(dropin_dir, DROPIN_FILE_NAME), 'w') { |f| f.write(dropin) }
+    end
+
+    def enable_restarts(services)
+      units = []
+      services.each do |service|
+        unit = service.systemd_unit
+        units << unit
+
+        write_dropin(unit, service)
+      end
+
+      systemd_interface.enable_restart_paths(units)
+    end
+
+    def enable_flip_flops(services)
+      units = []
+      services.each do |service|
+        unit = service.systemd_unit
+        units << "#{unit}1"
+        units << "#{unit}2"
+
+        write_dropin(unit, service)
+      end
+
+      systemd_interface.enable_start_stop_paths(units)
     end
   end
 end

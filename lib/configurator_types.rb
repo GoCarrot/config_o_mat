@@ -89,9 +89,13 @@ class Service < ConfigItem
   attr_reader :systemd_unit, :restart_mode, :templates
 
   def initialize(opts)
-    @systemd_unit = opts[:systemd_unit]
+    @systemd_unit = (opts[:systemd_unit] || '')
     @restart_mode = opts[:restart_mode]&.to_sym
     @templates = opts[:templates]
+
+    if @restart_mode == :flip_flop && !@systemd_unit.include?('@')
+      @systemd_unit = "#{@systemd_unit}@"
+    end
   end
 
   def validate
@@ -99,8 +103,16 @@ class Service < ConfigItem
     unless @templates.is_a?(Array) && @templates.all? { |v| v.is_a?(String) }
       error :templates, 'must be an array of strings'
     end
-    error :systemd_unit, 'must be present' if @systemd_unit.nil? || @systemd_unit.empty?
+    error :systemd_unit, 'must be present' if @systemd_unit.nil? || @systemd_unit.empty? || @systemd_unit == '@'
     error :restart_mode, "must be one of #{RESTART_MODES}" unless RESTART_MODES.include?(@restart_mode)
+
+    if @restart_mode == :flip_flop && !@systemd_unit.end_with?('@')
+      error :systemd_unit, 'must not contain an instance (anything after a @)'
+    end
+
+    if restart_mode == :restart && @systemd_unit.end_with?('@')
+      error :systemd_unit, 'must not be a naked instantiated unit when restart_mode=restart'
+    end
   end
 
   def hash
