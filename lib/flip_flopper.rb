@@ -16,7 +16,13 @@
 
 require 'lifecycle_vm'
 require 'flip_flop_memory'
-require 'op'
+require 'op/determine_running_instance'
+require 'op/start_activating_instance'
+require 'op/check_service_status'
+require 'cond/service_status'
+require 'op/stop_initial_instance'
+require 'op/report_failure'
+require 'op/stop_activating_instance'
 
 class FlipFlopper < LifecycleVM::VM
   memory_class FlipFlopMemory
