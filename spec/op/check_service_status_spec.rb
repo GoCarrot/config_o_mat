@@ -50,7 +50,7 @@ RSpec.describe Op::CheckServiceStatus do
   let(:logger) { nil }
 
   let(:service_interface_stub) do
-    { 'ActiveStatus' => unit_status }
+    { 'ActiveState' => unit_status }
   end
 
 

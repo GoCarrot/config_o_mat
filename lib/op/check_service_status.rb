@@ -41,7 +41,7 @@ module Op
         return
       end
 
-      reported_status = activating_interface['ActiveStatus']
+      reported_status = activating_interface['ActiveState']
 
       logger&.info(:service_status, name: instance_name, status: reported_status)
 
