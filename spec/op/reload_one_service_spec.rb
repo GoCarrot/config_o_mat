@@ -31,9 +31,9 @@ RSpec.describe Op::ReloadOneService do
 
   before do
     bus = {
-      SystemdInterface::BUS_NAME => {
+      SystemdInterface::SERVICE_NAME => {
         SystemdInterface::OBJECT_PATH => {
-
+          SystemdInterface::MANAGER_INTERFACE => {}
         }
       }
     }

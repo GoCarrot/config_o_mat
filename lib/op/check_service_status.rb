@@ -32,7 +32,7 @@ module Op
       instance_name = "#{service}#{activating_instance}"
 
       if !activating_interface
-        self.activating_interface = systemd_interface.unit_interface(instance_name)
+        self.activating_interface = systemd_interface.service_interface(instance_name)
       end
 
       if !activating_interface

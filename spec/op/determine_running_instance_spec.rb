@@ -40,8 +40,8 @@ RSpec.describe Op::DetermineRunningInstance do
 
   let(:systemd_interface) do
     instance_double('SystemdInterface').tap do |iface|
-      allow(iface).to receive(:unit_status).with('test@1').and_return(test1_status)
-      allow(iface).to receive(:unit_status).with('test@2').and_return(test2_status)
+      allow(iface).to receive(:service_status).with('test@1').and_return(test1_status)
+      allow(iface).to receive(:service_status).with('test@2').and_return(test2_status)
     end
   end
 

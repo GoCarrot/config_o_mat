@@ -17,28 +17,36 @@
 require 'dbus'
 
 class SystemdInterface
-  BUS_NAME = 'org.freedesktop.systemd1'
+  SERVICE_NAME = 'org.freedesktop.systemd1'
   OBJECT_PATH = '/org/freedesktop/systemd1'
+  MANAGER_INTERFACE = 'org.freedesktop.systemd1.Manager'
+
   UNIT_INTERFACE = 'org.freedesktop.systemd1.Unit'
   UNIT_STATE = 'ActiveState'
 
   def initialize(sysbus = nil)
     if sysbus
-      @sysd_service = sysbus[BUS_NAME]
-      @sysd_iface = @sysd_service[OBJECT_PATH]
+      @sysd_service = sysbus[SERVICE_NAME]
+      obj = @sysd_service[OBJECT_PATH]
+      @sysd_iface = obj[MANAGER_INTERFACE]
     end
   end
 
-  def unit_interface(unit_name)
-    unit_path = @sysd_iface.GetUnit(unit_name)
+  def service_interface(unit_name)
+    unit_path = @sysd_iface.GetUnit("#{unit_name}.service")
     unit_obj = @sysd_service[unit_path]
     unit_obj[UNIT_INTERFACE]
   rescue DBus::Error
     nil
   end
 
-  def unit_status(unit_name)
-    unit_interface(unit_name).try { |iface| iface[UNIT_STATE] } || 'inactive'
+  def service_status(unit_name)
+    iface = service_interface(unit_name)
+    if iface
+      iface[UNIT_STATE]
+    else
+      'inactive'
+    end
   end
 
   def enable_restart_paths(units)

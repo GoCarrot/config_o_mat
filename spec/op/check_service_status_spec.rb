@@ -45,19 +45,19 @@ RSpec.describe Op::CheckServiceStatus do
   let(:activating_instance) { [1, 2].sample }
   let(:min_wait) { 5 }
   let(:max_wait) { 30 }
-  let(:activating_interface) { unit_interface_stub }
+  let(:activating_interface) { service_interface_stub }
   let(:unit_status) { 'activating' }
   let(:logger) { nil }
 
-  let(:unit_interface_stub) do
+  let(:service_interface_stub) do
     { 'ActiveStatus' => unit_status }
   end
 
 
   let(:systemd_interface) do
     instance_double('SystemdInterface').tap do |iface|
-      allow(iface).to receive(:unit_interface).with("test@#{activating_instance}")
-                                              .and_return(unit_interface_stub)
+      allow(iface).to receive(:service_interface).with("test@#{activating_instance}")
+                                                 .and_return(service_interface_stub)
     end
   end
 
@@ -65,7 +65,7 @@ RSpec.describe Op::CheckServiceStatus do
     let(:activating_interface) { nil }
 
     context 'when a unit interface cannot be loaded' do
-      let(:unit_interface_stub) { nil }
+      let(:service_interface_stub) { nil }
 
       it 'sets activation_status to failed' do
         expect(state.activation_status).to eq :failed
@@ -89,7 +89,7 @@ RSpec.describe Op::CheckServiceStatus do
 
     context 'when a unit interface is loaded' do
       it 'saves the unit interface' do
-        expect(state.activating_interface).to be unit_interface_stub
+        expect(state.activating_interface).to be service_interface_stub
       end
     end
   end
