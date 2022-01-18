@@ -37,7 +37,8 @@ RSpec.describe Op::CheckServiceStatus do
       activating_interface: activating_interface,
       systemd_interface: systemd_interface,
       min_wait: min_wait,
-      max_wait: max_wait
+      max_wait: max_wait,
+      logger: logger
     )
   end
 
@@ -46,6 +47,7 @@ RSpec.describe Op::CheckServiceStatus do
   let(:max_wait) { 30 }
   let(:activating_interface) { unit_interface_stub }
   let(:unit_status) { 'activating' }
+  let(:logger) { nil }
 
   let(:unit_interface_stub) do
     { 'ActiveStatus' => unit_status }
@@ -67,6 +69,21 @@ RSpec.describe Op::CheckServiceStatus do
 
       it 'sets activation_status to failed' do
         expect(state.activation_status).to eq :failed
+      end
+
+      context 'with a logger' do
+        let(:logger) do
+          @messages = []
+          l = LogsForMyFamily::Logger.new
+          l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+          l
+        end
+
+        it 'logs ipc failure' do
+          expect(@messages).to include(
+            contain_exactly(:error, :ipc_failure, a_hash_including(name: "test@#{activating_instance}"))
+          )
+        end
       end
     end
 
@@ -102,6 +119,23 @@ RSpec.describe Op::CheckServiceStatus do
     end
   end
 
+  shared_examples_for 'logged status' do
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      it 'logs service status' do
+        expect(@messages).to include(
+          contain_exactly(:info, :service_status, a_hash_including(name: "test@#{activating_instance}", status: unit_status))
+        )
+      end
+    end
+  end
+
   context 'when the unit is active' do
     let(:unit_status) { 'active' }
 
@@ -116,6 +150,8 @@ RSpec.describe Op::CheckServiceStatus do
         expect(state.activation_status).to eq :started
       end
     end
+
+    include_examples 'logged status'
   end
 
   context 'when the unit is activating' do
@@ -132,6 +168,8 @@ RSpec.describe Op::CheckServiceStatus do
         expect(state.activation_status).to eq :timed_out
       end
     end
+
+    include_examples 'logged status'
   end
 
   context 'when the unit is in any other state' do
@@ -140,5 +178,7 @@ RSpec.describe Op::CheckServiceStatus do
     it 'sets activation_status to failed' do
       expect(state.activation_status).to eq :failed
     end
+
+    include_examples 'logged status'
   end
 end

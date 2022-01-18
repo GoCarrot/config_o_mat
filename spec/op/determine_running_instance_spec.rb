@@ -33,7 +33,8 @@ RSpec.describe Op::DetermineRunningInstance do
   let(:state) do
     FlipFlopMemory.new(
       systemd_interface: systemd_interface,
-      service: 'test@'
+      service: 'test@',
+      logger: logger
     )
   end
 
@@ -41,6 +42,26 @@ RSpec.describe Op::DetermineRunningInstance do
     instance_double('SystemdInterface').tap do |iface|
       allow(iface).to receive(:unit_status).with('test@1').and_return(test1_status)
       allow(iface).to receive(:unit_status).with('test@2').and_return(test2_status)
+    end
+  end
+
+  let(:logger) { nil }
+
+  context 'with a logger' do
+    let(:test1_status) { ACTIVE_STATES.sample }
+    let(:test2_status) { INACTIVE_STATES.sample }
+    let(:logger) do
+      @messages = []
+      l = LogsForMyFamily::Logger.new
+      l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+      l
+    end
+
+    it 'logs the status of each instance' do
+      expect(@messages).to include(
+        contain_exactly(:info, :service_status, a_hash_including(name: 'test@1', status: test1_status)),
+        contain_exactly(:info, :service_status, a_hash_including(name: 'test@2', status: test2_status))
+      )
     end
   end
 

@@ -29,16 +29,21 @@ module Op
         do_sleep(1)
       end
 
+      instance_name = "#{service}#{activating_instance}"
+
       if !activating_interface
-        self.activating_interface = systemd_interface.unit_interface("#{service}#{activating_instance}")
+        self.activating_interface = systemd_interface.unit_interface(instance_name)
       end
 
       if !activating_interface
+        logger&.error(:ipc_failure, name: instance_name)
         self.activation_status = :failed
         return
       end
 
       reported_status = activating_interface['ActiveStatus']
+
+      logger&.info(:service_status, name: instance_name, status: reported_status)
 
       if reported_status == 'active'
         self.activation_status = :started

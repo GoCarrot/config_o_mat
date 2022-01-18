@@ -47,11 +47,13 @@ RSpec.describe Op::StopInitialInstance do
       runtime_directory: runtime_directory,
       service: 'test@',
       running_instance: [1, 2].sample,
+      logger: logger
     )
   end
 
   let(:runtime_directory) { @runtime_directory }
   let(:touch_files) { [] }
+  let(:logger) { nil }
 
   context 'without a stop file present' do
     it 'touches the stop file' do
@@ -64,6 +66,21 @@ RSpec.describe Op::StopInitialInstance do
 
     it 'touches the stop file' do
       expect(File.stat(File.join(runtime_directory, touch_files[0]))).to be > @stat[touch_files[0]]
+    end
+  end
+
+  context 'with a logger' do
+    let(:logger) do
+      @messages = []
+      l = LogsForMyFamily::Logger.new
+      l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+      l
+    end
+
+    it 'logs service start' do
+      expect(@messages).to include(
+        contain_exactly(:notice, :service_stop, a_hash_including(name: "#{state.service}#{state.running_instance}"))
+      )
     end
   end
 end

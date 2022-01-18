@@ -22,7 +22,11 @@ module Op
     reads :service, :activating_instance, :runtime_directory
 
     def call
-      file_path = File.join(runtime_directory,  "#{service}#{activating_instance}.stop")
+      instance_name = "#{service}#{activating_instance}"
+      file_path = File.join(runtime_directory,  "#{instance_name}.stop")
+
+      logger&.notice(:service_stop, name: instance_name)
+
       FileUtils.touch(file_path)
     end
   end

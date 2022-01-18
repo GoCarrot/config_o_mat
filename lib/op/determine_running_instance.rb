@@ -24,8 +24,16 @@ module Op
     RUNNING_STATES = %w[active activating reloading].freeze
 
     def call
-      i1_running = RUNNING_STATES.include?(systemd_interface.unit_status("#{service}1"))
-      i2_running = RUNNING_STATES.include?(systemd_interface.unit_status("#{service}2"))
+      i1_name = "#{service}1"
+      i1_status = systemd_interface.unit_status(i1_name)
+      logger&.info(:service_status, name: i1_name, status: i1_status)
+
+      i2_name = "#{service}2"
+      i2_status = systemd_interface.unit_status(i2_name)
+      logger&.info(:service_status, name: i2_name, status: i2_status)
+
+      i1_running = RUNNING_STATES.include?(i1_status)
+      i2_running = RUNNING_STATES.include?(i2_status)
 
       if i1_running && i2_running
         error :service, 'both instances are currently running!'
