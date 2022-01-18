@@ -18,6 +18,7 @@ require 'op/reload_one_service'
 
 require 'configurator_memory'
 require 'configurator_types'
+require 'meta_configurator_types'
 
 require 'logsformyfamily'
 
@@ -29,6 +30,16 @@ RSpec.describe Op::ReloadOneService do
   end
 
   before do
+    bus = {
+      SystemdInterface::BUS_NAME => {
+        SystemdInterface::OBJECT_PATH => {
+
+        }
+      }
+    }
+    allow(DBus).to receive(:system_bus).and_return(bus)
+    allow(FlipFlopper).to receive(:new).and_return(flip_flop_stub)
+
     @runtime_directory = Dir.mktmpdir
     touch_files.each do |file|
       path = File.join(runtime_directory, file)
@@ -57,42 +68,74 @@ RSpec.describe Op::ReloadOneService do
   let(:runtime_directory) { @runtime_directory }
   let(:service_defs) do
     {
-      service0: Service.new(systemd_unit: 'test', restart_mode: 'restart', templates: ['templ0']),
-      service1: Service.new(systemd_unit: 'other', restart_mode: 'restart', templates: ['templ1'])
+      service0: Service.new(systemd_unit: 'test', restart_mode: restart_mode, templates: ['templ0']),
+      service1: Service.new(systemd_unit: 'other', restart_mode: restart_mode, templates: ['templ1'])
     }
   end
 
   let(:services_to_reload) { %i[service0 service1] }
   let(:touch_files) { [] }
   let(:logger) { nil }
+  let(:flip_flop_stub) { nil }
 
-  context 'without a reload file present' do
-    it 'touches the reload file' do
-      expect { File.stat(File.join(runtime_directory, 'other.restart')) }.not_to raise_error
+  context 'when restart_mode=restart' do
+    let(:restart_mode) { 'restart' }
+
+    context 'without a reload file present' do
+      it 'touches the reload file' do
+        expect { File.stat(File.join(runtime_directory, 'other.restart')) }.not_to raise_error
+      end
+
+      it 'updates services_to_reload' do
+        expect(state).to have_attributes(
+          services_to_reload: %i[service0]
+        )
+      end
     end
 
-    it 'updates services_to_reload' do
-      expect(state).to have_attributes(
-        services_to_reload: %i[service0]
-      )
+    context 'with a reload file present' do
+      let(:touch_files) { ['other.restart'] }
+
+      it 'touches the reload file' do
+        expect(File.stat(File.join(runtime_directory, 'other.restart'))).to be > @stat['other.restart']
+      end
+
+      it 'updates services_to_reload' do
+        expect(state).to have_attributes(
+          services_to_reload: %i[service0]
+        )
+      end
+    end
+
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      it 'logs a service reload' do
+        expect(@messages).to include(
+          contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other'))
+        )
+      end
     end
   end
 
-  context 'with a reload file present' do
-    let(:touch_files) { ['other.restart'] }
+  context 'when restart_mode=flip_flop' do
+    let(:restart_mode) { 'flip_flop' }
 
-    it 'touches the reload file' do
-      expect(File.stat(File.join(runtime_directory, 'other.restart'))).to be > @stat['other.restart']
+    let(:flip_flop_stub) do
+      instance_double(FlipFlopper).tap do |vm|
+        allow(vm).to receive(:call).and_return(vm)
+        allow(vm).to receive(:errors?).and_return(!flip_flop_errors.nil?)
+        allow(vm).to receive(:errors).and_return(flip_flop_errors)
+      end
     end
 
-    it 'updates services_to_reload' do
-      expect(state).to have_attributes(
-        services_to_reload: %i[service0]
-      )
-    end
-  end
+    let(:flip_flop_errors) { nil }
 
-  context 'with a logger' do
     let(:logger) do
       @messages = []
       l = LogsForMyFamily::Logger.new
@@ -100,10 +143,39 @@ RSpec.describe Op::ReloadOneService do
       l
     end
 
-    it 'logs a service reload' do
-      expect(@messages).to include(
-        contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other'))
+    it 'creates a flip flopper vm with proper memory' do
+      expect(FlipFlopper).to have_received(:new).with(
+        have_attributes(
+          systemd_interface: an_instance_of(SystemdInterface),
+          service: 'other@',
+          runtime_directory: runtime_directory,
+          logger: logger
+        )
       )
+    end
+
+    it 'executes the flip flopper vm' do
+      expect(flip_flop_stub).to have_received(:call)
+    end
+
+    it 'updates services_to_reload' do
+      expect(state).to have_attributes(
+        services_to_reload: %i[service0]
+      )
+    end
+
+    context 'when the flip flop fails' do
+      let(:flip_flop_errors) do
+        {
+          service: ['failed to start service instance']
+        }
+      end
+
+      it 'passes along errors' do
+        expect(result.errors).to match(
+          service: ['failed to start service instance']
+        )
+      end
     end
   end
 end

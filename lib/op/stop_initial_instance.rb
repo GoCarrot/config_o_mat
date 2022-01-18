@@ -14,13 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle_vm/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'lifecycle_vm', '~> 0.1.1', require: false
-gem 'ruby-dbus', '~> 0.16.0', require: false
-gem 'sd_notify', '~> 0.1', require: false
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+module Op
+  class StopInitialInstance < LifecycleVM::OpBase
+    reads :service, :running_instance, :runtime_directory
+
+    def call
+      file_path = File.join(runtime_directory,  "#{service}#{running_instance}.stop")
+      FileUtils.touch(file_path)
+    end
+  end
+end

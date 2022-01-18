@@ -31,6 +31,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.3)
+    ruby-dbus (0.16.0)
     sd_notify (0.1.1)
     simplecov (0.21.2)
       docile (~> 1.1)
@@ -47,6 +48,7 @@ DEPENDENCIES
   lifecycle_vm (~> 0.1.1)
   logsformyfamily (~> 0.2)
   rspec (~> 3.10)
+  ruby-dbus (~> 0.16.0)
   sd_notify (~> 0.1)
   simplecov (~> 0.21)
 

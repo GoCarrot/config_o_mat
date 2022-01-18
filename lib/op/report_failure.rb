@@ -14,13 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'lifecycle_vm/op_base'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'lifecycle_vm', '~> 0.1.1', require: false
-gem 'ruby-dbus', '~> 0.16.0', require: false
-gem 'sd_notify', '~> 0.1', require: false
+module Op
+  class ReportFailure < LifecycleVM::OpBase
+    reads :activation_status
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+    def call
+      case activation_status
+      when :failed
+        error :service, 'failed to start service instance'
+      when :timed_out
+        error :service, 'service instance did not start within timeout'
+      else
+        error :service, "service instance failed due to an unknown error (#{activation_status})"
+      end
+    end
+  end
+end

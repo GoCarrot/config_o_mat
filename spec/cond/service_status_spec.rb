@@ -14,13 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source 'https://rubygems.org'
+require 'cond/service_status'
 
-gem 'aws-sdk-appconfig', '~> 1.18', require: false
-gem 'logsformyfamily', '~> 0.2', require: false
-gem 'lifecycle_vm', '~> 0.1.1', require: false
-gem 'ruby-dbus', '~> 0.16.0', require: false
-gem 'sd_notify', '~> 0.1', require: false
+require 'flip_flop_memory'
 
-gem 'rspec', '~> 3.10', group: :test, require: false
-gem 'simplecov', '~> 0.21', group: :test, require: false
+RSpec.describe Cond::ServiceStatus do
+  def perform
+    described_class.call(state)
+  end
+
+  before { @result = perform }
+
+  subject(:result) { @result }
+
+  let(:state) do
+    FlipFlopMemory.new(
+      activation_status: activation_status
+    )
+  end
+
+  let(:activation_status) { %i[starting started failed timed_out].sample }
+
+  it 'returns the service status' do
+    expect(result).to eq activation_status
+  end
+end
