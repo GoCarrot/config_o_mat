@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle'
+require 'lifecycle_vm'
 
 require 'meta_configurator_memory'
 
@@ -23,7 +23,7 @@ require 'cond/early_exit'
 require 'op/load_meta_config'
 require 'op/generate_systemd_config'
 
-class MetaConfigurator < Lifecycle::VM
+class MetaConfigurator < LifecycleVM::VM
   VERSION = "0.0.1"
 
   memory_class MetaConfiguratorMemory

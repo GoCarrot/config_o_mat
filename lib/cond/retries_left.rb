@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/cond_base'
+require 'lifecycle_vm/cond_base'
 
 module Cond
-  class RetriesLeft < Lifecycle::CondBase
+  class RetriesLeft < LifecycleVM::CondBase
     reads :error_op, :retries_left, :applying_profile
 
     def call

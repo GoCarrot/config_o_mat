@@ -16,18 +16,18 @@
 
 require 'lifecycle_vm/op_base'
 
+
 module Op
-  class CommitStagedProfile < LifecycleVM::OpBase
-    reads :applied_profiles, :applying_profile
-    writes :applied_profiles, :applying_profile
+  class StopActivatingInstance < LifecycleVM::OpBase
+    reads :service, :activating_instance, :runtime_directory
 
     def call
-      # This happens in the first boot case, where we apply all profiles at once and so there's no
-      # individual applying_profile.
-      return if applying_profile.nil?
+      instance_name = "#{service}#{activating_instance}"
+      file_path = File.join(runtime_directory,  "#{instance_name}.stop")
 
-      applied_profiles[applying_profile.name] = applying_profile
-      self.applying_profile = nil
+      logger&.notice(:service_stop, name: instance_name)
+
+      FileUtils.touch(file_path)
     end
   end
 end

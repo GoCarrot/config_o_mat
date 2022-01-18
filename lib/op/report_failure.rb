@@ -14,11 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module Lifecycle
-  class VmMemory
-    BUILTINS = %i[current_state last_state current_op error_op].freeze
+require 'lifecycle_vm/op_base'
 
-    attr_accessor(*BUILTINS)
-    attr_accessor :logger
+module Op
+  class ReportFailure < LifecycleVM::OpBase
+    reads :activation_status
+
+    def call
+      case activation_status
+      when :failed
+        error :service, 'failed to start service instance'
+      when :timed_out
+        error :service, 'service instance did not start within timeout'
+      else
+        error :service, "service instance failed due to an unknown error (#{activation_status})"
+      end
+    end
   end
 end

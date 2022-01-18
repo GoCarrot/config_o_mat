@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 module Op
-  class StageOneProfile < Lifecycle::OpBase
+  class StageOneProfile < LifecycleVM::OpBase
     reads :profiles_to_apply
     writes :applying_profile, :profiles_to_apply
 

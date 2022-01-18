@@ -14,11 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module Lifecycle
-  # Base class for all errors raised by Lifecycle.
-  class Error < RuntimeError; end
-end
+require 'lifecycle_vm/op_base'
 
-require 'lifecycle/vm'
-require 'lifecycle/then'
-require 'lifecycle/state'
+
+module Op
+  class StartActivatingInstance < LifecycleVM::OpBase
+    reads :service, :activating_instance, :runtime_directory
+
+    def call
+      instance_name = "#{service}#{activating_instance}"
+      file_path = File.join(runtime_directory,  "#{instance_name}.start")
+
+      logger&.notice(:service_start, name: instance_name)
+
+      FileUtils.touch(file_path)
+    end
+  end
+end

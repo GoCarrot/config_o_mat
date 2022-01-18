@@ -14,20 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle_vm/op_base'
+require 'lifecycle_vm/cond_base'
 
-module Op
-  class CommitStagedProfile < LifecycleVM::OpBase
-    reads :applied_profiles, :applying_profile
-    writes :applied_profiles, :applying_profile
+module Cond
+  class ServiceStatus < LifecycleVM::CondBase
+    reads :activation_status
 
     def call
-      # This happens in the first boot case, where we apply all profiles at once and so there's no
-      # individual applying_profile.
-      return if applying_profile.nil?
-
-      applied_profiles[applying_profile.name] = applying_profile
-      self.applying_profile = nil
+      activation_status
     end
   end
 end

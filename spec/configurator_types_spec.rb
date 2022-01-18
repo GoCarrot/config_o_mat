@@ -61,6 +61,66 @@ RSpec.describe Service do
       )
     end
   end
+
+  context 'when restart_mode=restart' do
+    context 'if the systemd_unit ends in @' do
+      let(:systemd_unit) { 'test0@' }
+
+      it 'reports errors' do
+        subject.validate
+        expect(subject.errors).to match(
+          systemd_unit: ['must not be a naked instantiated unit when restart_mode=restart']
+        )
+      end
+    end
+
+    context 'if the systemd_unit contains an instance name' do
+      let(:systemd_unit) { 'test0@1' }
+
+      it 'is valid' do
+        subject.validate
+        expect(subject.errors?).to be false
+      end
+    end
+  end
+
+  context 'when restart_mode=flip_flop' do
+    let(:restart_mode) { 'flip_flop' }
+
+    it 'appends @ to the systemd_unit' do
+      expect(subject.systemd_unit).to eq "#{systemd_unit}@"
+    end
+
+    context 'if the systemd_unit is empty' do
+      let(:systemd_unit) { nil }
+
+      it 'reports errors' do
+        subject.validate
+        expect(subject.errors).to match(
+          systemd_unit: ['must be present'],
+        )
+      end
+    end
+
+    context 'if the systemd_unit already ends in @' do
+      let(:systemd_unit) { 'test0@' }
+
+      it 'does not modify the systemd_unit' do
+        expect(subject.systemd_unit).to eq systemd_unit
+      end
+    end
+
+    context 'if the systemd_unit contains an instance name' do
+      let(:systemd_unit) { 'test@1' }
+
+      it 'reports errors' do
+        subject.validate
+        expect(subject.errors).to match(
+          systemd_unit: ['must not contain an instance (anything after a @)']
+        )
+      end
+    end
+  end
 end
 
 RSpec.describe Template do

@@ -14,20 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle_vm/op_base'
+require 'cond/service_status'
 
-module Op
-  class CommitStagedProfile < LifecycleVM::OpBase
-    reads :applied_profiles, :applying_profile
-    writes :applied_profiles, :applying_profile
+require 'flip_flop_memory'
 
-    def call
-      # This happens in the first boot case, where we apply all profiles at once and so there's no
-      # individual applying_profile.
-      return if applying_profile.nil?
+RSpec.describe Cond::ServiceStatus do
+  def perform
+    described_class.call(state)
+  end
 
-      applied_profiles[applying_profile.name] = applying_profile
-      self.applying_profile = nil
-    end
+  before { @result = perform }
+
+  subject(:result) { @result }
+
+  let(:state) do
+    FlipFlopMemory.new(
+      activation_status: activation_status
+    )
+  end
+
+  let(:activation_status) { %i[starting started failed timed_out].sample }
+
+  it 'returns the service status' do
+    expect(result).to eq activation_status
   end
 end

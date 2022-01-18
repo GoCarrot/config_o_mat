@@ -14,16 +14,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
+
+require 'flip_flop_memory'
+require 'flip_flopper'
+require 'meta_configurator_types'
+
+require 'dbus'
 
 module Op
-  class ReloadOneService < Lifecycle::OpBase
+  class ReloadOneService < LifecycleVM::OpBase
     reads :services_to_reload, :runtime_directory, :service_defs
     writes :services_to_reload
 
     def call
       service = services_to_reload.pop
       service_def = service_defs[service]
+
+      if service_def.restart_mode == :restart
+        do_restart(service, service_def)
+      else
+        do_flip_flop(service, service_def)
+      end
+    end
+
+  private
+
+    def do_restart(service, service_def)
       unit = service_def.systemd_unit
 
       file_path = File.join(runtime_directory, unit + '.restart')
@@ -34,6 +51,23 @@ module Op
       )
 
       FileUtils.touch(file_path)
+    end
+
+    def do_flip_flop(service, service_def)
+      mem = FlipFlopMemory.new(
+        runtime_directory: runtime_directory,
+        service: service_def.systemd_unit,
+        systemd_interface: SystemdInterface.new(DBus.system_bus),
+        logger: logger
+      )
+      vm = FlipFlopper.new(mem)
+      vm.call
+
+      if vm.errors?
+        vm.errors.each do |(key, value)|
+          value.each { |v| error key, v }
+        end
+      end
     end
   end
 end

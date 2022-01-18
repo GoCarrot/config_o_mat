@@ -18,6 +18,8 @@ source 'https://rubygems.org'
 
 gem 'aws-sdk-appconfig', '~> 1.18', require: false
 gem 'logsformyfamily', '~> 0.2', require: false
+gem 'lifecycle_vm', '~> 0.1.1', require: false
+gem 'ruby-dbus', '~> 0.16.0', require: false
 gem 'sd_notify', '~> 0.1', require: false
 
 gem 'rspec', '~> 3.10', group: :test, require: false

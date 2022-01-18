@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 require 'optparse'
 
 module Op
-  class ParseMetaCli < Lifecycle::OpBase
+  class ParseMetaCli < LifecycleVM::OpBase
     DEFAULT_SYSTEMD_DIRECTORY = '/run/systemd/system'
 
     reads :argv, :env

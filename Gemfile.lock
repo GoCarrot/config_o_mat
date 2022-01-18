@@ -16,6 +16,7 @@ GEM
     diff-lcs (1.4.4)
     docile (1.4.0)
     jmespath (1.4.0)
+    lifecycle_vm (0.1.1)
     logsformyfamily (0.2.3)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
@@ -30,6 +31,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.3)
+    ruby-dbus (0.16.0)
     sd_notify (0.1.1)
     simplecov (0.21.2)
       docile (~> 1.1)
@@ -43,8 +45,10 @@ PLATFORMS
 
 DEPENDENCIES
   aws-sdk-appconfig (~> 1.18)
+  lifecycle_vm (~> 0.1.1)
   logsformyfamily (~> 0.2)
   rspec (~> 3.10)
+  ruby-dbus (~> 0.16.0)
   sd_notify (~> 0.1)
   simplecov (~> 0.21)
 

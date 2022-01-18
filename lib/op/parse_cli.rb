@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 require 'optparse'
 
 module Op
-  class ParseCli < Lifecycle::OpBase
+  class ParseCli < LifecycleVM::OpBase
     reads :argv, :env
     writes :configuration_directory, :runtime_directory, :logs_directory, :early_exit
 

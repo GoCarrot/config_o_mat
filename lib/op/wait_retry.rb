@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 module Op
-  class WaitRetry < Lifecycle::OpBase
+  class WaitRetry < LifecycleVM::OpBase
     reads :retry_wait, :retry_count, :retries_left
     writes :retries_left
 

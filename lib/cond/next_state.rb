@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/cond_base'
+require 'lifecycle_vm/cond_base'
 
 module Cond
-  class NextState < Lifecycle::CondBase
+  class NextState < LifecycleVM::CondBase
     reads :next_state
 
     def call

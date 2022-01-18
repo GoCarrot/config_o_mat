@@ -58,12 +58,12 @@ RSpec.describe Op::GenerateSystemdConfig do
   let(:service_defs) do
     {
       test0: Service.new(
-        systemd_unit: 'test0', restart_mode: 'restart', templates: [
+        systemd_unit: 'test0', restart_mode: restart_mode, templates: [
           'templ0', 'templ1'
         ]
       ),
       test1: Service.new(
-        systemd_unit: 'test1', restart_mode: 'restart', templates: [
+        systemd_unit: 'test1', restart_mode: restart_mode, templates: [
           'templ0'
         ]
       )
@@ -75,24 +75,50 @@ RSpec.describe Op::GenerateSystemdConfig do
   let(:systemd_interface) do
     instance_double("SystemdInterface").tap do |iface|
       allow(iface).to receive(:enable_restart_paths).and_return(nil)
+      allow(iface).to receive(:enable_start_stop_paths).and_return(nil)
       allow(iface).to receive(:daemon_reload).and_return(nil)
     end
   end
 
-  it 'enables restart paths for each service' do
-    expect(systemd_interface).to have_received(:enable_restart_paths).with(['test0', 'test1'])
+  context 'with restart_mode=restart' do
+    let(:restart_mode) { 'restart' }
+
+    it 'enables restart paths for each service' do
+      expect(systemd_interface).to have_received(:enable_restart_paths).with(['test0', 'test1'])
+    end
+
+    it 'outputs additional configuration' do
+      expect(File.read(File.join(systemd_directory, 'test0.service.d/99_teak_configurator.conf'))).to include(
+        %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf\nLoadCredential=bar.conf:#{runtime_directory}/bar.conf)
+      )
+      expect(File.read(File.join(systemd_directory, 'test1.service.d/99_teak_configurator.conf'))).to include(
+        %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf)
+      )
+    end
+
+    it 'reloads the daemon' do
+      expect(systemd_interface).to have_received(:daemon_reload)
+    end
   end
 
-  it 'outputs additional configuration' do
-    expect(File.read(File.join(systemd_directory, 'test0.service.d/99_teak_configurator.conf'))).to include(
-      %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf\nLoadCredential=bar.conf:#{runtime_directory}/bar.conf)
-    )
-    expect(File.read(File.join(systemd_directory, 'test1.service.d/99_teak_configurator.conf'))).to include(
-      %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf)
-    )
-  end
+  context 'with restart_mode=flip_flop' do
+    let(:restart_mode) { 'flip_flop' }
 
-  it 'reloads the daemon' do
-    expect(systemd_interface).to have_received(:daemon_reload)
+    it 'enables start and stop paths for each service' do
+      expect(systemd_interface).to have_received(:enable_start_stop_paths).with(['test0@1', 'test0@2', 'test1@1', 'test1@2'])
+    end
+
+    it 'outputs additional configuration' do
+      expect(File.read(File.join(systemd_directory, 'test0@.service.d/99_teak_configurator.conf'))).to include(
+        %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf\nLoadCredential=bar.conf:#{runtime_directory}/bar.conf)
+      )
+      expect(File.read(File.join(systemd_directory, 'test1@.service.d/99_teak_configurator.conf'))).to include(
+        %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf)
+      )
+    end
+
+    it 'reloads the daemon' do
+      expect(systemd_interface).to have_received(:daemon_reload)
+    end
   end
 end

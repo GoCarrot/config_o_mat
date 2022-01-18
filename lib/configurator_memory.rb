@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/vm_memory'
+require 'lifecycle_vm/memory'
 
 require 'configurator_types'
 
-class ConfiguratorMemory < Lifecycle::VmMemory
+class ConfiguratorMemory < LifecycleVM::Memory
   attr_accessor :argv, :env, :early_exit, :configuration_directory,
                 :runtime_directory, :logs_directory, :run_count, :profile_defs,
                 :template_defs, :service_defs, :dependencies, :refresh_interval,

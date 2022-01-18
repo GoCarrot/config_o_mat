@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'lifecycle/op_base'
+require 'lifecycle_vm/op_base'
 
 require 'erb'
 
 module Op
-  class CompileTemplates < Lifecycle::OpBase
+  class CompileTemplates < LifecycleVM::OpBase
     reads :template_defs, :configuration_directory
     writes :compiled_templates
 
