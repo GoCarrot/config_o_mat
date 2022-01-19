@@ -44,7 +44,7 @@ class MetaConfiguratorMemory < LifecycleVM::Memory
     retries_left: 3,
     retry_wait: 2,
     region: nil,
-    systemd_interface: SystemdInterface.new
+    systemd_interface: nil
   )
     super()
 
