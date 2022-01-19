@@ -50,19 +50,19 @@ class SystemdInterface
   end
 
   def enable_restart_paths(units)
-    units.each do |unit|
-      `systemctl enable --now --runtime teak-configurator-restart-service@#{unit}.path`
-    end
+    path_units = units.map { |unit| "teak-configurator-restart-service@#{unit}.path" }
+    enable_and_start(path_units)
   end
 
   def enable_start_stop_paths(units)
-    units.each do |unit|
-      `systemctl enable --now --runtime teak-configurator-start-service@#{unit}.path teak-configurator-stop-service@#{unit}.path`
+    path_units = units.flat_map do |unit|
+      ["teak-configurator-start-service@#{unit}.path" "teak-configurator-stop-service@#{unit}.path"]
     end
+    enable_and_start(path_units)
   end
 
   def daemon_reload
-    `systemctl daemon-reload`
+    @sysd_iface.Reload()
   end
 
   def ==(other)
@@ -73,5 +73,19 @@ class SystemdInterface
     return false if !other.is_a?(self.class)
     return false if other.instance_variable_get(:@sysd_service) != @sysd_service
     true
+  end
+
+private
+
+  def enable_and_start(units)
+    @sysd_iface.EnableUnitFiles(
+      units,
+      true, # Runtime
+      false # force
+    )
+    daemon_reload
+    units.each do |unit|
+      @sysd_iface.StartUnit(unit, 'replace')
+    end
   end
 end
