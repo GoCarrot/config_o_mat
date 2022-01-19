@@ -64,4 +64,14 @@ class SystemdInterface
   def daemon_reload
     `systemctl daemon-reload`
   end
+
+  def ==(other)
+    eql?(other)
+  end
+
+  def eql?(other)
+    return false if !other.is_a?(self.class)
+    return false if other.instance_variable_get(:@sysd_service) != @sysd_service
+    true
+  end
 end

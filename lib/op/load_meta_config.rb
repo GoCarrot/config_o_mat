@@ -18,6 +18,7 @@ require 'bundler/setup'
 
 require 'lifecycle_vm/op_base'
 require 'configurator_types'
+require 'meta_configurator_types'
 
 require 'logsformyfamily'
 
@@ -63,7 +64,7 @@ module Op
     reads :configuration_directory, :logs_directory, :env
     writes :profile_defs, :template_defs, :service_defs, :dependencies,
            :refresh_interval, :client_id, :logger, :retry_count, :retries_left,
-           :retry_wait, :region
+           :retry_wait, :region, :systemd_interface
 
     def call
       default_config = {
@@ -180,6 +181,8 @@ module Op
           end
         end
       end
+
+      self.systemd_interface = SystemdInterface.new(DBus.system_bus)
     end
   end
 end

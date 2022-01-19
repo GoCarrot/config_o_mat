@@ -18,13 +18,12 @@ require 'lifecycle_vm/op_base'
 
 require 'flip_flop_memory'
 require 'flip_flopper'
-require 'meta_configurator_types'
 
 require 'dbus'
 
 module Op
   class ReloadOneService < LifecycleVM::OpBase
-    reads :services_to_reload, :runtime_directory, :service_defs
+    reads :services_to_reload, :runtime_directory, :service_defs, :systemd_interface
     writes :services_to_reload
 
     def call
@@ -57,7 +56,7 @@ module Op
       mem = FlipFlopMemory.new(
         runtime_directory: runtime_directory,
         service: service_def.systemd_unit,
-        systemd_interface: SystemdInterface.new(DBus.system_bus),
+        systemd_interface: systemd_interface,
         logger: logger
       )
       vm = FlipFlopper.new(mem)

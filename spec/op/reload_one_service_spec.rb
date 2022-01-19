@@ -30,14 +30,6 @@ RSpec.describe Op::ReloadOneService do
   end
 
   before do
-    bus = {
-      SystemdInterface::SERVICE_NAME => {
-        SystemdInterface::OBJECT_PATH => {
-          SystemdInterface::MANAGER_INTERFACE => {}
-        }
-      }
-    }
-    allow(DBus).to receive(:system_bus).and_return(bus)
     allow(FlipFlopper).to receive(:new).and_return(flip_flop_stub)
 
     @runtime_directory = Dir.mktmpdir
@@ -61,7 +53,8 @@ RSpec.describe Op::ReloadOneService do
       runtime_directory: runtime_directory,
       service_defs: service_defs,
       services_to_reload: services_to_reload,
-      logger: logger
+      logger: logger,
+      systemd_interface: systemd_interface
     )
   end
 
@@ -77,6 +70,15 @@ RSpec.describe Op::ReloadOneService do
   let(:touch_files) { [] }
   let(:logger) { nil }
   let(:flip_flop_stub) { nil }
+  let(:systemd_interface) do
+    SystemdInterface.new({
+      SystemdInterface::SERVICE_NAME => {
+        SystemdInterface::OBJECT_PATH => {
+          SystemdInterface::MANAGER_INTERFACE => {}
+        }
+      }
+    })
+  end
 
   context 'when restart_mode=restart' do
     let(:restart_mode) { 'restart' }
@@ -146,7 +148,7 @@ RSpec.describe Op::ReloadOneService do
     it 'creates a flip flopper vm with proper memory' do
       expect(FlipFlopper).to have_received(:new).with(
         have_attributes(
-          systemd_interface: an_instance_of(SystemdInterface),
+          systemd_interface: systemd_interface,
           service: 'other@',
           runtime_directory: runtime_directory,
           logger: logger

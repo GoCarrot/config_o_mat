@@ -25,7 +25,7 @@ class ConfiguratorMemory < LifecycleVM::Memory
                 :client_id, :compiled_templates, :applied_profiles, :applying_profile,
                 :generated_templates, :services_to_reload, :profiles_to_apply,
                 :last_refresh_time, :next_state, :retry_count, :retries_left, :retry_wait,
-                :region, :appconfig_client
+                :region, :appconfig_client, :systemd_interface
 
   def initialize(
     argv: [],
@@ -54,7 +54,8 @@ class ConfiguratorMemory < LifecycleVM::Memory
     retries_left: 3,
     retry_wait: 2,
     region: nil,
-    appconfig_client: nil
+    appconfig_client: nil,
+    systemd_interface: nil
   )
     super()
 
@@ -85,5 +86,6 @@ class ConfiguratorMemory < LifecycleVM::Memory
     @retry_wait = retry_wait
     @region = region
     @appconfig_client = appconfig_client
+    @systemd_interface = systemd_interface
   end
 end

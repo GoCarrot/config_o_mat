@@ -25,6 +25,17 @@ RSpec.describe Op::LoadMetaConfig do
   end
 
   before do
+    @bus = {
+      SystemdInterface::SERVICE_NAME => {
+        SystemdInterface::OBJECT_PATH => {
+          SystemdInterface::MANAGER_INTERFACE => {}
+        }
+      }
+    }
+    allow(DBus).to receive(:system_bus).and_return(@bus)
+    @double = instance_double(SystemdInterface)
+    allow(SystemdInterface).to receive(:new).with(@bus).and_return(@double)
+
     @new_logger_messages = []
     @stdout_logger_proc =  proc { |level_name, event_type, merged_data| @new_logger_messages << [level_name, event_type, merged_data] }
     allow(StdoutLogWriter).to receive(:new).and_return(@stdout_logger_proc)
@@ -101,7 +112,8 @@ RSpec.describe Op::LoadMetaConfig do
         retry_count: 6,
         retries_left: 6,
         retry_wait: 12,
-        region: 'us-east-1'
+        region: 'us-east-1',
+        systemd_interface: @double
       )
     end
 
