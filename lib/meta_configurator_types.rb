@@ -56,7 +56,7 @@ class SystemdInterface
 
   def enable_start_stop_paths(units)
     path_units = units.flat_map do |unit|
-      ["teak-configurator-start-service@#{unit}.path" "teak-configurator-stop-service@#{unit}.path"]
+      ["teak-configurator-start-service@#{unit}.path", "teak-configurator-stop-service@#{unit}.path"]
     end
     enable_and_start(path_units)
   end
