@@ -25,7 +25,6 @@ module Op
     reads :template_defs, :service_defs, :runtime_directory, :systemd_directory, :systemd_interface
 
     def call
-      managed_units = []
       grouped_restart_modes = service_defs.values.group_by(&:restart_mode)
       restarts = grouped_restart_modes[:restart]
       flip_flops = grouped_restart_modes[:flip_flop]
