@@ -54,11 +54,11 @@ module Op
           File.open(destination_file, 'w') { |f| f.write(rendered) }
           dependencies[key]&.each { |service| services_to_reload << service }
         end
-
-        services_to_reload.uniq!
-
-        logger&.notice(:scheduled_restarts, services: services_to_reload)
       end
+
+      services_to_reload.uniq!
+
+      logger&.notice(:scheduled_restarts, services: services_to_reload)
     end
   end
 end
