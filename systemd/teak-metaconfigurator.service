@@ -50,7 +50,7 @@ RestrictNamespaces=yes
 
 User=root
 Type=oneshot
-ExecStart=bundle2.7 exec /opt/teak-configurator/bin/meta_configurator
+ExecStart=bundle2.7 exec /opt/teak-configurator/bin/config_o_mat-meta_configurator
 RemainAfterExit=yes
 
 [Install]

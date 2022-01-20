@@ -61,7 +61,7 @@ WatchdogSec=60
 
 NotifyAccess=main
 Type=notify
-ExecStart=bundle2.7 exec /opt/teak-configurator/bin/configurator
+ExecStart=bundle2.7 exec /opt/teak-configurator/bin/config_o_mat-configurator
 Restart=always
 
 [Install]
