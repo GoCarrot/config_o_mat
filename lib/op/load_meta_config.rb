@@ -18,7 +18,7 @@ require 'bundler/setup'
 
 require 'lifecycle_vm/op_base'
 require 'configurator_types'
-require 'meta_configurator_types'
+require 'systemd_interface'
 
 require 'logsformyfamily'
 

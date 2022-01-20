@@ -17,7 +17,7 @@
 require 'op/generate_systemd_config'
 
 require 'meta_configurator_memory'
-require 'meta_configurator_types'
+require 'systemd_interface'
 require 'configurator_types'
 
 require 'tmpdir'

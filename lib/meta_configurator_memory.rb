@@ -16,8 +16,6 @@
 
 require 'lifecycle_vm/memory'
 
-require 'meta_configurator_types'
-
 class MetaConfiguratorMemory < LifecycleVM::Memory
   attr_accessor :argv, :env, :early_exit, :configuration_directory, :runtime_directory,
                 :systemd_directory, :logs_directory, :profile_defs,

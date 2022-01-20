@@ -18,7 +18,7 @@ require 'op/reload_one_service'
 
 require 'configurator_memory'
 require 'configurator_types'
-require 'meta_configurator_types'
+require 'systemd_interface'
 
 require 'logsformyfamily'
 
