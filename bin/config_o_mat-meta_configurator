@@ -18,12 +18,12 @@ require 'config_o_mat/meta_configurator'
 require 'logsformyfamily'
 
 LogsForMyFamily.configure do |config|
-  config.version = ConfigOMat::MetaConfigurator::VERSION
-  config.app_name = ConfigOMat::MetaConfigurator.name
+  config.version = ConfigOMat::MetaConfigurator::VM::VERSION
+  config.app_name = ConfigOMat::MetaConfigurator::VM.name
 end
 
 logger = LogsForMyFamily::Logger.new
-logger.backends = [StdoutLogWriter.new]
+logger.backends = [ConfigOMat::StdoutLogWriter.new]
 log_level = ENV['CONFIG_O_MAT_LOG_LEVEL']&.to_sym
 if log_level && LogsForMyFamily::Logger::LEVELS.include?(log_level)
   logger.filter_level(log_level)

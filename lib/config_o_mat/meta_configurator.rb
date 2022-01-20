@@ -16,11 +16,9 @@
 
 require 'lifecycle_vm'
 
-require 'config_o_mat/shared'
 require 'config_o_mat/shared/op'
 require 'config_o_mat/shared/cond'
 require 'config_o_mat/meta_configurator/op'
-require 'config_o_mat/meta_configurator/cond'
 require 'config_o_mat/meta_configurator/memory'
 
 module ConfigOMat
