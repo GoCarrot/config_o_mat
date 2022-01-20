@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'bundler/setup'
-
 require 'lifecycle_vm/op_base'
 require 'config_o_mat/shared/types'
 require 'config_o_mat/shared/systemd_interface'
