@@ -57,7 +57,7 @@ RSpec.describe ConfigOMat::Service do
       expect(subject.errors).to match(
         templates: ['must be present', 'must be an array of strings'],
         systemd_unit: ['must be present'],
-        restart_mode: ['must be one of [:restart, :flip_flop]']
+        restart_mode: ['must be one of [:restart, :flip_flop, :restart_all]']
       )
     end
   end
@@ -80,6 +80,56 @@ RSpec.describe ConfigOMat::Service do
       it 'is valid' do
         subject.validate
         expect(subject.errors?).to be false
+      end
+    end
+  end
+
+  context 'when restart_mode=restart_all' do
+    let(:restart_mode) { 'restart_all' }
+
+    it 'is valid' do
+      subject.validate
+      expect(subject.errors?).to be false
+    end
+
+    it 'appends @ and an escaped * to the systemd_unit' do
+      expect(subject.systemd_unit).to eq "#{systemd_unit}@\\x2a"
+    end
+
+    context 'if the systemd_unit ends in @' do
+      let(:systemd_unit) { 'test@' }
+
+      it 'is valid' do
+        subject.validate
+        expect(subject.errors?).to be false
+      end
+
+      it 'appends an escaped * to the systemd_unit' do
+        expect(subject.systemd_unit).to eq "#{systemd_unit}\\x2a"
+      end
+    end
+
+    context 'if the systemd_unit ends in @\\x2a' do
+      let(:systemd_unit) { 'test@\\x2a' }
+
+      it 'is valid' do
+        subject.validate
+        expect(subject.errors?).to be false
+      end
+
+      it 'does not change the systemd_unit' do
+        expect(subject.systemd_unit).to eq systemd_unit
+      end
+    end
+
+    context 'if the systemd_unit contains an instance name' do
+      let(:systemd_unit) { 'test0@1' }
+
+      it 'reports errors' do
+        subject.validate
+        expect(subject.errors).to match(
+          systemd_unit: ['must not be an instantiated unit when restart_mode=restart_all']
+        )
       end
     end
   end

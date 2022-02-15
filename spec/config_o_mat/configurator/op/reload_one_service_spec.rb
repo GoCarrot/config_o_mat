@@ -125,6 +125,51 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
     end
   end
 
+  context 'when restart_mode=restart_all' do
+    let(:restart_mode) { 'restart_all' }
+
+    context 'without a reload file present' do
+      it 'touches the reload file' do
+        expect { File.stat(File.join(runtime_directory, 'other@\\x2a.restart')) }.not_to raise_error
+      end
+
+      it 'updates services_to_reload' do
+        expect(state).to have_attributes(
+          services_to_reload: %i[service0]
+        )
+      end
+    end
+
+    context 'with a reload file present' do
+      let(:touch_files) { ['other@\\x2a.restart'] }
+
+      it 'touches the reload file' do
+        expect(File.stat(File.join(runtime_directory, 'other@\\x2a.restart'))).to be > @stat['other@\\x2a.restart']
+      end
+
+      it 'updates services_to_reload' do
+        expect(state).to have_attributes(
+          services_to_reload: %i[service0]
+        )
+      end
+    end
+
+    context 'with a logger' do
+      let(:logger) do
+        @messages = []
+        l = LogsForMyFamily::Logger.new
+        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+        l
+      end
+
+      it 'logs a service reload' do
+        expect(@messages).to include(
+          contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other@\\x2a'))
+        )
+      end
+    end
+  end
+
   context 'when restart_mode=flip_flop' do
     let(:restart_mode) { 'flip_flop' }
 

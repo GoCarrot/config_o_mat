@@ -29,8 +29,9 @@ module ConfigOMat
       def call
         service = services_to_reload.pop
         service_def = service_defs[service]
+        restart_mode = service_def.restart_mode
 
-        if service_def.restart_mode == :restart
+        if restart_mode == :restart || restart_mode == :restart_all
           do_restart(service, service_def)
         else
           do_flip_flop(service, service_def)
