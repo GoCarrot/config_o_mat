@@ -164,7 +164,7 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
 
       it 'logs a service reload' do
         expect(@messages).to include(
-          contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other@\\x2a'))
+          contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other@'))
         )
       end
     end

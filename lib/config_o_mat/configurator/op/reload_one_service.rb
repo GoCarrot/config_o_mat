@@ -41,13 +41,11 @@ module ConfigOMat
     private
 
       def do_restart(service, service_def)
-        unit = service_def.restart_unit
-
-        file_path = File.join(runtime_directory, unit + '.restart')
+        file_path = File.join(runtime_directory, service_def.restart_unit + '.restart')
 
         logger&.notice(
           :service_restart,
-          name: service, systemd_unit: unit, touched_path: file_path
+          name: service, systemd_unit: service_def.systemd_unit, touched_path: file_path
         )
 
         FileUtils.touch(file_path)
