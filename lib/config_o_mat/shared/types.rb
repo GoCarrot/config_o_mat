@@ -87,23 +87,21 @@ module ConfigOMat
   class Service < ConfigItem
     RESTART_MODES = %i[restart flip_flop restart_all].freeze
 
-    attr_reader :systemd_unit, :restart_mode, :templates
+    attr_reader :systemd_unit, :restart_mode, :templates, :restart_unit
 
     def initialize(opts)
       @systemd_unit = (opts[:systemd_unit] || '')
       @restart_mode = opts[:restart_mode]&.to_sym
       @templates = opts[:templates]
 
-      if @restart_mode == :flip_flop && !@systemd_unit.include?('@')
+      if (@restart_mode == :flip_flop || @restart_mode == :restart_all) && !@systemd_unit.include?('@')
         @systemd_unit = "#{@systemd_unit}@"
-      elsif @restart_mode == :restart_all
-        if @systemd_unit.include?('@')
-          if !@systemd_unit.end_with?('\\x2a')
-            @systemd_unit = "#{@systemd_unit}\\x2a"
-          end
-        else
-          @systemd_unit = "#{@systemd_unit}@\\x2a"
-        end
+      end
+
+      @restart_unit = @systemd_unit
+
+      if @restart_mode == :restart_all
+        @restart_unit = "#{@restart_unit}\\x2a"
       end
     end
 
@@ -123,7 +121,7 @@ module ConfigOMat
         error :systemd_unit, 'must not be a naked instantiated unit when restart_mode=restart'
       end
 
-      if restart_mode == :restart_all && !@systemd_unit.end_with?('@\\x2a')
+      if restart_mode == :restart_all && !@systemd_unit.end_with?('@')
         error :systemd_unit, 'must not be an instantiated unit when restart_mode=restart_all'
       end
     end

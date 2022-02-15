@@ -41,7 +41,7 @@ module ConfigOMat
     private
 
       def do_restart(service, service_def)
-        unit = service_def.systemd_unit
+        unit = service_def.restart_unit
 
         file_path = File.join(runtime_directory, unit + '.restart')
 

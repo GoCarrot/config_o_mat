@@ -81,6 +81,10 @@ RSpec.describe ConfigOMat::Service do
         subject.validate
         expect(subject.errors?).to be false
       end
+
+      it 'has a restart_unit' do
+        expect(subject.restart_unit).to eq systemd_unit
+      end
     end
   end
 
@@ -92,8 +96,12 @@ RSpec.describe ConfigOMat::Service do
       expect(subject.errors?).to be false
     end
 
-    it 'appends @ and an escaped * to the systemd_unit' do
-      expect(subject.systemd_unit).to eq "#{systemd_unit}@\\x2a"
+    it 'appends @ to the systemd_unit' do
+      expect(subject.systemd_unit).to eq "#{systemd_unit}@"
+    end
+
+    it 'has a wildcard restart unit' do
+      expect(subject.restart_unit).to eq "#{systemd_unit}@\\x2a"
     end
 
     context 'if the systemd_unit ends in @' do
@@ -104,21 +112,12 @@ RSpec.describe ConfigOMat::Service do
         expect(subject.errors?).to be false
       end
 
-      it 'appends an escaped * to the systemd_unit' do
-        expect(subject.systemd_unit).to eq "#{systemd_unit}\\x2a"
-      end
-    end
-
-    context 'if the systemd_unit ends in @\\x2a' do
-      let(:systemd_unit) { 'test@\\x2a' }
-
-      it 'is valid' do
-        subject.validate
-        expect(subject.errors?).to be false
-      end
-
       it 'does not change the systemd_unit' do
         expect(subject.systemd_unit).to eq systemd_unit
+      end
+
+      it 'has a wildcard restart unit' do
+        expect(subject.restart_unit).to eq "#{systemd_unit}\\x2a"
       end
     end
 
