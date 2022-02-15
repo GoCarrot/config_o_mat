@@ -121,4 +121,25 @@ RSpec.describe ConfigOMat::Op::GenerateSystemdConfig do
       expect(systemd_interface).to have_received(:daemon_reload)
     end
   end
+
+  context 'with restart_mode=restart_all' do
+    let(:restart_mode) { 'restart_all' }
+
+    it 'enables wildcard restart paths for each service' do
+      expect(systemd_interface).to have_received(:enable_restart_paths).with(['test0@\\x2a','test1@\\x2a'])
+    end
+
+    it 'outputs additional configuration' do
+      expect(File.read(File.join(systemd_directory, 'test0@.service.d/99_teak_configurator.conf'))).to include(
+        %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf\nLoadCredential=bar.conf:#{runtime_directory}/bar.conf)
+      )
+      expect(File.read(File.join(systemd_directory, 'test1@.service.d/99_teak_configurator.conf'))).to include(
+        %([Service]\nLoadCredential=foo.conf:#{runtime_directory}/foo.conf)
+      )
+    end
+
+    it 'reloads the daemon' do
+      expect(systemd_interface).to have_received(:daemon_reload)
+    end
+  end
 end

@@ -27,10 +27,10 @@ module ConfigOMat
 
       def call
         grouped_restart_modes = service_defs.values.group_by(&:restart_mode)
-        restarts = grouped_restart_modes[:restart]
+        restarts = grouped_restart_modes.fetch(:restart, []) + grouped_restart_modes.fetch(:restart_all, [])
         flip_flops = grouped_restart_modes[:flip_flop]
 
-        enable_restarts(restarts) if restarts
+        enable_restarts(restarts) if !restarts.empty?
         enable_flip_flops(flip_flops) if flip_flops
 
         systemd_interface.daemon_reload
@@ -54,10 +54,9 @@ module ConfigOMat
       def enable_restarts(services)
         units = []
         services.each do |service|
-          unit = service.systemd_unit
-          units << unit
+          units << service.restart_unit
 
-          write_dropin(unit, service)
+          write_dropin(service.systemd_unit, service)
         end
 
         systemd_interface.enable_restart_paths(units)
