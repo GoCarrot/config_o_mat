@@ -19,8 +19,8 @@ require 'lifecycle_vm/op_base'
 module ConfigOMat
   module Op
     class RefreshProfile < LifecycleVM::OpBase
-      reads :profile_defs, :client_id, :applying_profile, :appconfig_client
-      writes :applying_profile
+      reads :profile_defs, :client_id, :applying_profile, :appconfig_client, :secretsmanager_client, :secrets_loader_memory
+      writes :applying_profile, :secrets_loader_memory
 
       def call
         profile_name = applying_profile.name
@@ -56,9 +56,29 @@ module ConfigOMat
           name: profile_name, previous_version: profile_version, new_version: loaded_version
         )
 
-        self.applying_profile = LoadedAppconfigProfile.new(
+        profile = LoadedAppconfigProfile.new(
           profile_name, loaded_version, response.content.read, response.content_type
         )
+
+        loaded_secrets = nil
+
+        if !profile.secret_defs.empty?
+          self.secrets_loader_memory ||= ConfigOMat::SecretsLoader::Memory.new(secretsmanager_client: secretsmanager_client)
+          secrets_loader_memory.update_secret_defs_to_load(profile.secret_defs.values)
+
+          vm = ConfigOMat::SecretsLoader::VM.new(secrets_loader_memory).call
+
+          if vm.errors?
+            error :"#{profile_name}_secrets", vm.errors
+            return
+          end
+
+          loaded_secrets = secrets_loader_memory.loaded_secrets.each_with_object({}) do |(key, value), hash|
+            hash[value.name] = value
+          end
+        end
+
+        self.applying_profile = LoadedProfile.new(profile, loaded_secrets)
       end
     end
   end

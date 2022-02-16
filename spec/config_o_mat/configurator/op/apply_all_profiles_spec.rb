@@ -37,8 +37,14 @@ RSpec.describe ConfigOMat::Op::ApplyAllProfiles do
 
   let(:profiles_to_apply) do
     [
-      ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-      ConfigOMat::LoadedProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json')
+      ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+        nil
+      ),
+      ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json'),
+        nil
+      )
     ]
   end
 
@@ -54,8 +60,14 @@ RSpec.describe ConfigOMat::Op::ApplyAllProfiles do
   context 'with profiles already applied' do
     let(:applied_profiles) do
       {
-        source1: ConfigOMat::LoadedProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json'),
-        source2: ConfigOMat::LoadedProfile.new(:source2, '8', { answer: 255 }.to_json, 'application/json')
+        source1: ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json'),
+          nil
+        ),
+        source2: ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source2, '8', { answer: 255 }.to_json, 'application/json'),
+          nil
+        )
       }
     end
 
@@ -74,8 +86,14 @@ RSpec.describe ConfigOMat::Op::ApplyAllProfiles do
   context 'with an errored profile' do
     let(:profiles_to_apply) do
       [
-        ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-        ConfigOMat::LoadedProfile.new(:source1, '3', '{ "answer": 181 ', 'application/json')
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+          nil
+        ),
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '3', '{ "answer": 181 ', 'application/json'),
+          nil
+        )
       ]
     end
 

@@ -54,7 +54,11 @@ RSpec.describe ConfigOMat::Op::CompileTemplates do
       ),
       source1: ConfigOMat::LoadedProfile.new(
         ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
-        nil
+        {
+          secret: ConfigOMat::LoadedSecret.new(
+            :secret, 'test', '96444d8e-b27a-4b15-be2a-dc217b936bee', { answer: 91 }.to_json, 'application/json'
+          )
+        }
       )
     }
   end
@@ -66,7 +70,7 @@ RSpec.describe ConfigOMat::Op::CompileTemplates do
       expect(
         state.compiled_templates.transform_values { |t| t.render(profiles) }
       ).to match(
-        templ0: %(answer: 42\nvalue: 181\n),
+        templ0: %(answer: 42\nvalue: 181\nsecret: 91\n),
         templ1: %(versions:\n  source0: '1'\n  source1: '2'\n)
       )
     end

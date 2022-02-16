@@ -20,6 +20,7 @@ require 'config_o_mat/configurator/memory'
 require 'config_o_mat/shared/types'
 
 require 'aws-sdk-appconfig'
+require 'aws-sdk-secretsmanager'
 require 'logsformyfamily'
 
 require 'securerandom'
@@ -39,6 +40,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
       applied_profiles: applied_profiles,
       client_id: client_id,
       appconfig_client: client_stub,
+      secretsmanager_client: sm_client_stub,
       logger: logger
     )
   end
@@ -53,8 +55,14 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
 
   let(:applied_profiles) do
     {
-      source0: ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-      source1: ConfigOMat::LoadedAppconfigProfile.new(:source1, '1', { answer: 255 }.to_json, 'application/json')
+      source0: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+        nil
+      ),
+      source1: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source1, '1', { answer: 255 }.to_json, 'application/json'),
+        nil
+      )
     }
   end
 
@@ -72,6 +80,16 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
         stub_responses[request.params[:application]]
       end
       )
+    end
+  end
+
+  let(:secretsmanager_stubs) { {} }
+
+  let(:sm_client_stub) do
+    Aws::SecretsManager::Client.new(stub_responses: true).tap do |client|
+      client.stub_responses(:get_secret_value, proc do |request|
+        secretsmanager_stubs[request.params[:secret_id]]
+      end)
     end
   end
 
@@ -97,13 +115,102 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
 
     it 'sets the profiles to apply' do
       expect(state.profiles_to_apply).to contain_exactly(
-        ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
-        ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+          nil
+        ),
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json'),
+          nil
+        )
       )
     end
 
     it 'sets last refresh time' do
       expect(state.last_refresh_time).to be_within(1).of(Time.now.to_i)
+    end
+
+    context 'with secrets' do
+      let(:with_secrets_content) do
+        {
+          answer: 181,
+          "aws:secrets" => {
+            my_secret: {
+              secret_id: 'TestSecretThing',
+              version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c'
+            },
+            other_secret: {
+              secret_id: 'OtherSecret'
+            }
+          }
+        }.to_json
+      end
+
+      let(:stub_responses) do
+        {
+          'test' => {
+            content: StringIO.new({ answer: 42, }.to_json), configuration_version: '1', content_type: 'application/json'
+          },
+          'foo' => {
+            content: StringIO.new(with_secrets_content), configuration_version: '2', content_type: 'application/json'
+          },
+          'other' => { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
+        }
+      end
+
+      let(:secretsmanager_stubs) do
+        {
+          'TestSecretThing' => {
+            secret_string: { answer: 91 }.to_json, version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c',
+            arn: 'arn:aws:secretsmanager:us-east-1:1234:secret:test-124', name: 'test-123',
+            version_stages: nil
+          },
+          'OtherSecret' => {
+            secret_string: { answer: 191 }.to_json, version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c',
+            arn: 'arn:aws:secretsmanager:us-east-1:1234:secret:test-124', name: 'test-123',
+            version_stages: ['AWSCURRENT']
+          }
+        }
+      end
+
+      it 'sets the profiles to apply' do
+        expect(state.profiles_to_apply).to contain_exactly(
+          ConfigOMat::LoadedProfile.new(
+            ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', with_secrets_content, 'application/json'),
+            {
+              my_secret: ConfigOMat::LoadedSecret.new(
+                :my_secret, 'TestSecretThing', '3b452578-53ed-42d7-8d72-eeb01bf5545c', { answer: 91 }.to_json, 'application/json'
+              ),
+              other_secret: ConfigOMat::LoadedSecret.new(
+                :other_secret, 'OtherSecret', '3b452578-53ed-42d7-8d72-eeb01bf5545c', { answer: 191 }.to_json, 'application/json'
+              )
+            }
+          ),
+          ConfigOMat::LoadedProfile.new(
+            ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json'),
+            nil
+          )
+        )
+      end
+
+      context 'when the secrets load errors' do
+        let(:secretsmanager_stubs) do
+          {
+            'TestSecretThing' => {
+              secret_string: { answer: 91 }.to_json, version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c',
+              arn: 'arn:aws:secretsmanager:us-east-1:1234:secret:test-124', name: 'test-123',
+              version_stages: nil
+            },
+            'OtherSecret' => 'ResourceNotFoundException'
+          }
+        end
+
+        it 'errors' do
+          expect(result.errors).to match(
+            source1_secrets: [{other_secret: [an_instance_of(Aws::SecretsManager::Errors::ResourceNotFoundException)]}]
+          )
+        end
+      end
     end
 
     context 'with a logger' do
@@ -134,9 +241,18 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
 
     it 'sets the profiles to apply' do
       expect(state.profiles_to_apply).to contain_exactly(
-        ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-        ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
-        ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+          nil
+        ),
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+          nil
+        ),
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json'),
+          nil
+        )
       )
     end
 

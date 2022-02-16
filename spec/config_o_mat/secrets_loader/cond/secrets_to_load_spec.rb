@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'config_o_mat/configurator/cond/profiles_to_apply'
+require 'config_o_mat/secrets_loader/cond/secrets_to_load'
 
-require 'config_o_mat/configurator/memory'
+require 'config_o_mat/secrets_loader/memory'
 require 'config_o_mat/shared/types'
 
-RSpec.describe ConfigOMat::Cond::ProfilesToApply do
+RSpec.describe ConfigOMat::Cond::SecretsToLoad do
   def perform
     described_class.call(state)
   end
@@ -29,28 +29,20 @@ RSpec.describe ConfigOMat::Cond::ProfilesToApply do
   subject(:result) { @result }
 
   let(:state) do
-    ConfigOMat::Configurator::Memory.new(
-      profiles_to_apply: profiles_to_apply
-    )
+    s = ConfigOMat::SecretsLoader::Memory.new
+    s.update_secret_defs_to_load(secrets_to_load)
   end
 
-  context 'with no profiles to apply' do
-    let(:profiles_to_apply) { [] }
+  context 'with no secrets to load' do
+    let(:secrets_to_load) { [] }
 
     it 'is false' do
       expect(result).to be false
     end
   end
 
-  context 'with profiles to apply' do
-    let(:profiles_to_apply) do
-      [
-        ConfigOMat::LoadedProfile.new(
-          ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-          nil
-        )
-      ]
-    end
+  context 'with secrets to load' do
+    let(:secrets_to_load) { [ConfigOMat::Secret.new(:foo, secret_id: 'foo')] }
 
     it 'is true' do
       expect(result).to be true

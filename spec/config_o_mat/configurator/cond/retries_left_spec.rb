@@ -42,7 +42,12 @@ RSpec.describe ConfigOMat::Cond::RetriesLeft do
 
   let(:logger) { nil }
   let(:retries_left) { 3 }
-  let(:applying_profile) { ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json') }
+  let(:applying_profile) do
+    ConfigOMat::LoadedProfile.new(
+      ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+      nil
+    )
+  end
   let(:errors) { { source0: ['syntax error'] } }
   let(:error_op) do
     instance_double("Op::StageOneProfile").tap do |dbl|

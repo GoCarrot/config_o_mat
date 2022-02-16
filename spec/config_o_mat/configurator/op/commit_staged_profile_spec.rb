@@ -35,9 +35,27 @@ RSpec.describe ConfigOMat::Op::CommitStagedProfile do
     )
   end
 
-  let(:source0) { ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json') }
-  let(:source1) { ConfigOMat::LoadedProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json') }
-  let(:n_source1) { ConfigOMat::LoadedProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json') }
+  let(:source0) do
+    ConfigOMat::LoadedProfile.new(
+      ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+      nil
+    )
+  end
+
+  let(:source1) do
+    ConfigOMat::LoadedProfile.new(
+      ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 5 }.to_json, 'application/json'),
+      nil
+    )
+  end
+
+  let(:n_source1) do
+    ConfigOMat::LoadedProfile.new(
+      ConfigOMat::LoadedAppconfigProfile.new(:source1, '3', { answer: 181 }.to_json, 'application/json'),
+      nil
+    )
+  end
+
   let(:applying_profile) { n_source1 }
   let(:applied_profiles) do
     {

@@ -37,6 +37,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       client_id: client_id,
       applying_profile: applying_profile,
       appconfig_client: client_stub,
+      secretsmanager_client: sm_client_stub,
       logger: logger
     )
   end
@@ -48,7 +49,10 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
   end
 
   let(:applying_profile) do
-    ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', '{"answer": 42', 'application/json')
+    ConfigOMat::LoadedProfile.new(
+      ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', '{"answer": 42', 'application/json'),
+      nil
+    )
   end
 
   let(:client_id) { SecureRandom.uuid }
@@ -68,13 +72,101 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
     end
   end
 
+  let(:secretsmanager_stubs) { {} }
+
+  let(:sm_client_stub) do
+    Aws::SecretsManager::Client.new(stub_responses: true).tap do |client|
+      client.stub_responses(:get_secret_value, proc do |request|
+        secretsmanager_stubs[request.params[:secret_id]]
+      end)
+    end
+  end
+
   let(:logger) { nil }
 
   context 'when the profile is updated' do
     it 'updates applying_profile' do
       expect(state.applying_profile).to eq(
-        ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', { answer: 42 }.to_json, 'application/json')
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', { answer: 42 }.to_json, 'application/json'),
+          nil
+        )
       )
+    end
+
+    context 'with secrets' do
+      let(:with_secrets_content) do
+        {
+          answer: 181,
+          "aws:secrets" => {
+            my_secret: {
+              secret_id: 'TestSecretThing',
+              version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c'
+            },
+            other_secret: {
+              secret_id: 'OtherSecret'
+            }
+          }
+        }.to_json
+      end
+
+      let(:stub_responses) do
+        {
+          'test' => {
+            content: StringIO.new(with_secrets_content), configuration_version: '2', content_type: 'application/json'
+          },
+        }
+      end
+
+      let(:secretsmanager_stubs) do
+        {
+          'TestSecretThing' => {
+            secret_string: { answer: 91 }.to_json, version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c',
+            arn: 'arn:aws:secretsmanager:us-east-1:1234:secret:test-124', name: 'test-123',
+            version_stages: nil
+          },
+          'OtherSecret' => {
+            secret_string: { answer: 191 }.to_json, version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c',
+            arn: 'arn:aws:secretsmanager:us-east-1:1234:secret:test-124', name: 'test-123',
+            version_stages: ['AWSCURRENT']
+          }
+        }
+      end
+
+      it 'updates applying_profile' do
+        expect(state.applying_profile).to eq(
+          ConfigOMat::LoadedProfile.new(
+            ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', with_secrets_content, 'application/json'),
+            {
+              my_secret: ConfigOMat::LoadedSecret.new(
+                :my_secret, 'TestSecretThing', '3b452578-53ed-42d7-8d72-eeb01bf5545c', { answer: 91 }.to_json, 'application/json'
+              ),
+              other_secret: ConfigOMat::LoadedSecret.new(
+                :other_secret, 'OtherSecret', '3b452578-53ed-42d7-8d72-eeb01bf5545c', { answer: 191 }.to_json, 'application/json'
+              )
+            }
+          )
+        )
+      end
+
+      context 'when the secrets load errors' do
+        let(:secretsmanager_stubs) do
+          {
+            'TestSecretThing' => {
+              secret_string: { answer: 91 }.to_json, version_id: '3b452578-53ed-42d7-8d72-eeb01bf5545c',
+              arn: 'arn:aws:secretsmanager:us-east-1:1234:secret:test-124', name: 'test-123',
+              version_stages: nil
+            },
+            'OtherSecret' => 'ResourceNotFoundException'
+          }
+        end
+
+        it 'errors' do
+          expect(result.errors).to match(
+            source0_secrets: [{other_secret: [an_instance_of(Aws::SecretsManager::Errors::ResourceNotFoundException)]}]
+          )
+        end
+      end
     end
 
     context 'with a logger' do

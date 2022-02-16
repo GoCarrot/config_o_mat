@@ -67,6 +67,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
           secret_defs: a_hash_including(
             test: eq(
               ConfigOMat::Secret.new(
+                :test,
                 secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-124',
                 version_id: '95aa0202-8b17-4e32-b078-3cd5bdc6e567',
                 version_stage: nil,
@@ -75,6 +76,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
             ),
             other_test: eq(
               ConfigOMat::Secret.new(
+                :other_test,
                 secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-129',
                 version_id: nil,
                 version_stage: 'AWSCURRENT',
@@ -83,6 +85,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
             ),
             previous_test: eq(
               ConfigOMat::Secret.new(
+                :previous_test,
                 secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-145',
                 version_id: nil,
                 version_stage: 'AWSPREVIOUS',
@@ -91,6 +94,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
             ),
             plain_test: eq(
               ConfigOMat::Secret.new(
+                :plain_test,
                 secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-154',
                 version_id: nil,
                 version_stage: 'AWSCURRENT',

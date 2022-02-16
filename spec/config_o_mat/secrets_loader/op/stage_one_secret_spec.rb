@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'config_o_mat/configurator/cond/profiles_to_apply'
+require 'config_o_mat/secrets_loader/op/stage_one_secret'
 
-require 'config_o_mat/configurator/memory'
+require 'config_o_mat/secrets_loader/memory'
 require 'config_o_mat/shared/types'
 
-RSpec.describe ConfigOMat::Cond::ProfilesToApply do
+RSpec.describe ConfigOMat::Op::StageOneSecret do
   def perform
     described_class.call(state)
   end
@@ -29,31 +29,22 @@ RSpec.describe ConfigOMat::Cond::ProfilesToApply do
   subject(:result) { @result }
 
   let(:state) do
-    ConfigOMat::Configurator::Memory.new(
-      profiles_to_apply: profiles_to_apply
+    ConfigOMat::SecretsLoader::Memory.new(
+      secret_defs_to_load: secret_defs_to_load,
     )
   end
 
-  context 'with no profiles to apply' do
-    let(:profiles_to_apply) { [] }
-
-    it 'is false' do
-      expect(result).to be false
-    end
+  let(:secret_defs_to_load) do
+    [
+      ConfigOMat::Secret.new(:foo, secret_id: 'foo'),
+      ConfigOMat::Secret.new(:bar, secret_id: 'bar')
+    ]
   end
 
-  context 'with profiles to apply' do
-    let(:profiles_to_apply) do
-      [
-        ConfigOMat::LoadedProfile.new(
-          ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-          nil
-        )
-      ]
-    end
-
-    it 'is true' do
-      expect(result).to be true
-    end
+  it 'sets a profile from profiles to apply as the profile being applied' do
+    expect(state).to have_attributes(
+      secret_defs_to_load: secret_defs_to_load[0...1],
+      loading_secret: secret_defs_to_load[1]
+    )
   end
 end

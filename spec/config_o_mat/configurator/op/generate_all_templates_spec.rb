@@ -66,7 +66,11 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
       ),
       source1: ConfigOMat::LoadedProfile.new(
         ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
-        nil
+        {
+          secret: ConfigOMat::LoadedSecret.new(
+            :secret, 'test', '96444d8e-b27a-4b15-be2a-dc217b936bee', { answer: 91 }.to_json, 'application/json'
+          )
+        }
       )
     }
   end
@@ -98,14 +102,14 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
 
   context 'with the happy path' do
     it 'writes templates into runtime_directory' do
-      expect(File.read(File.join(runtime_directory, 'foo.conf'))).to eq %(answer: 42\nvalue: 181\n)
+      expect(File.read(File.join(runtime_directory, 'foo.conf'))).to eq %(answer: 42\nvalue: 181\nsecret: 91\n)
     end
 
     it 'updates state' do
       expect(state).to have_attributes(
         services_to_reload: [:service0, :service1],
         generated_templates: {
-          templ0: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 181\n)),
+          templ0: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 181\nsecret: 91\n)),
           templ1: generated_templates[:templ1]
         }
       )
@@ -115,7 +119,11 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
       let(:applying_profile) do
         ConfigOMat::LoadedProfile.new(
           ConfigOMat::LoadedAppconfigProfile.new(:source1, '3', { answer: 255 }.to_json, 'application/json'),
-          nil
+          {
+            secret: ConfigOMat::LoadedSecret.new(
+              :secret, 'test', '96444d8e-b27a-4b15-be2a-dc217b936bee', { answer: 191 }.to_json, 'application/json'
+            )
+          }
         )
       end
 
@@ -127,7 +135,7 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
         expect(state).to have_attributes(
           services_to_reload: [:service0, :service1, :service2],
           generated_templates: {
-            templ0: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 255\n)),
+            templ0: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 255\nsecret: 191\n)),
             templ1: ConfigOMat::GeneratedTemplate.new(%(versions:\n  source0: '1'\n  source1: '3'\n))
           }
         )
@@ -185,7 +193,7 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
       expect(state).to have_attributes(
         services_to_reload: [:service0, :service1],
         generated_templates: {
-          templ0: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 181\n)),
+          templ0: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 181\nsecret: 91\n)),
           templ1: generated_templates[:templ1],
           templ2: ConfigOMat::GeneratedTemplate.new(%(answer: 42\nvalue: 181\n))
         }
