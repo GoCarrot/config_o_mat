@@ -116,7 +116,7 @@ module ConfigOMat
            }
          }
 
-      on :refreshing_profile, do: Op::RefreshProfile, then: :applying_profile
+      on :refreshing_profile, do: Op::RefreshProfile, then: :generating_templates
     end
   end
 end
