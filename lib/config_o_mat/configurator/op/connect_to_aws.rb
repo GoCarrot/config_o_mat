@@ -17,18 +17,20 @@
 require 'lifecycle_vm/op_base'
 
 require 'aws-sdk-appconfig'
+require 'aws-sdk-secretsmanager'
 
 module ConfigOMat
   module Op
-    class ConnectToAppconfig < LifecycleVM::OpBase
+    class ConnectToAws < LifecycleVM::OpBase
       reads :region
-      writes :appconfig_client
+      writes :appconfig_client, :secretsmanager_client
 
       def call
         client_opts = { logger: logger }
         client_opts[:region] = region if region
 
         self.appconfig_client = Aws::AppConfig::Client.new(client_opts)
+        self.secretsmanager_client = Aws::SecretsManager::Client.new(client_opts)
       end
     end
   end

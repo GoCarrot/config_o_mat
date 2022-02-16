@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
   spec.executables   = ["config_o_mat-configurator", "config_o_mat-meta_configurator"]
 
   spec.add_dependency('aws-sdk-appconfig', '~> 1.18')
+  spec.add_dependency('aws-sdk-secretsmanager', '~> 1.57')
   spec.add_dependency('logsformyfamily', '~> 0.2')
   spec.add_dependency('lifecycle_vm', '~> 0.1.1')
   spec.add_dependency('ruby-dbus', '~> 0.16.0')

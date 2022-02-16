@@ -41,9 +41,9 @@ module ConfigOMat
 
       on :reading_meta_config, do: Op::LoadMetaConfig, then: :compiling_templates
 
-      on :compiling_templates, do: Op::CompileTemplates, then: :connecting_to_appconfig
+      on :compiling_templates, do: Op::CompileTemplates, then: :connecting_to_aws
 
-      on :connecting_to_appconfig, do: Op::ConnectToAppconfig, then: :refreshing_profiles
+      on :connecting_to_aws, do: Op::ConnectToAws, then: :refreshing_profiles
 
       on :refreshing_profiles,
          do: Op::RefreshAllProfiles,

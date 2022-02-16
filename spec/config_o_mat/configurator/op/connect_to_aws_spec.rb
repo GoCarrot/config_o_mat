@@ -14,19 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'config_o_mat/configurator/op/connect_to_appconfig'
+require 'config_o_mat/configurator/op/connect_to_aws'
 
 require 'config_o_mat/configurator/memory'
 
 require 'logsformyfamily'
 
-RSpec.describe ConfigOMat::Op::ConnectToAppconfig do
+RSpec.describe ConfigOMat::Op::ConnectToAws do
   def perform
     described_class.call(state)
   end
 
   before do
     allow(Aws::AppConfig::Client).to receive(:new).and_return(client_stub)
+    allow(Aws::SecretsManager::Client).to receive(:new).and_return(secret_client_stub)
     @result = perform
   end
 
@@ -43,18 +44,22 @@ RSpec.describe ConfigOMat::Op::ConnectToAppconfig do
     Aws::AppConfig::Client.new(stub_responses: true)
   end
 
+  let(:secret_client_stub) do
+    Aws::SecretsManager::Client.new(stub_responses: true)
+  end
+
   let(:region) { nil }
   let(:logger) { nil }
 
   it 'uses the default region' do
-    expect(Aws::AppConfig::Client).to have_received(:new).with(hash_excluding(:region))
+    expect([Aws::AppConfig::Client, Aws::SecretsManager::Client]).to all(have_received(:new).with(hash_excluding(:region)))
   end
 
   context 'with a region' do
     let(:region) { 'us-west-2' }
 
     it 'uses the configured region' do
-      expect(Aws::AppConfig::Client).to have_received(:new).with(a_hash_including(region: region))
+      expect([Aws::AppConfig::Client, Aws::SecretsManager::Client]).to all(have_received(:new).with(a_hash_including(region: region)))
     end
   end
 
@@ -62,7 +67,7 @@ RSpec.describe ConfigOMat::Op::ConnectToAppconfig do
     let(:logger) { LogsForMyFamily::Logger.new }
 
     it 'passes the logger to the client' do
-      expect(Aws::AppConfig::Client).to have_received(:new).with(a_hash_including(logger: logger))
+      expect([Aws::AppConfig::Client, Aws::SecretsManager::Client]).to all(have_received(:new).with(a_hash_including(logger: logger)))
     end
   end
 end
