@@ -34,6 +34,122 @@ RSpec.describe ConfigOMat::LoadedProfile do
         errors?: false
       )
     end
+
+    context 'with aws:secrets' do
+      let(:contents) do
+        {
+          answer: 42,
+          :"aws:secrets" => {
+            test: {
+              secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-124',
+              version_id: '95aa0202-8b17-4e32-b078-3cd5bdc6e567'
+            },
+            other_test: {
+              secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-129',
+            },
+            previous_test: {
+              secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-145',
+              version_stage: 'AWSPREVIOUS'
+            },
+            plain_test: {
+              secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-154',
+              content_type: 'text/plain'
+            }
+          }
+        }.to_json
+      end
+
+      it 'provides secrets' do
+        expect(profile).to have_attributes(
+          name: name, version: version,
+          contents: JSON.parse(contents, symbolize_names: true),
+          errors?: false,
+          secret_defs: a_hash_including(
+            test: eq(
+              ConfigOMat::Secret.new(
+                secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-124',
+                version_id: '95aa0202-8b17-4e32-b078-3cd5bdc6e567',
+                version_stage: nil,
+                content_type: 'application/json'
+              )
+            ),
+            other_test: eq(
+              ConfigOMat::Secret.new(
+                secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-129',
+                version_id: nil,
+                version_stage: 'AWSCURRENT',
+                content_type: 'application/json'
+              )
+            ),
+            previous_test: eq(
+              ConfigOMat::Secret.new(
+                secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-145',
+                version_id: nil,
+                version_stage: 'AWSPREVIOUS',
+                content_type: 'application/json'
+              )
+            ),
+            plain_test: eq(
+              ConfigOMat::Secret.new(
+                secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-154',
+                version_id: nil,
+                version_stage: 'AWSCURRENT',
+                content_type: 'text/plain'
+              )
+            )
+          )
+        )
+      end
+    end
+
+    context 'with invalid secrets' do
+      let(:contents) do
+        {
+          answer: 42,
+          :"aws:secrets" => {
+            test: {
+              version_id: '95aa0202-8b17-4e32-b078-3cd5bdc6e567'
+            },
+            other_test: {
+              secret_id: 'arn:aws:secretsmanager:us-east-1:12345:secret:test-129',
+              content_type: 'application/wtf'
+            },
+          }
+        }.to_json
+      end
+
+      it 'errors' do
+        expect(profile).to have_attributes(
+          errors?: true,
+          errors: a_hash_including(
+            contents_secrets_test: [a_hash_including(
+              secret_id: ['must be present']
+            )],
+            contents_secrets_other_test: [a_hash_including(
+              content_type: [include('must be one of')]
+            )]
+          )
+        )
+      end
+    end
+
+    context 'with an invalid secrets type' do
+      let(:contents) do
+        {
+          answer: 42,
+          :"aws:secrets" => []
+        }.to_json
+      end
+
+      it 'errors' do
+        expect(profile).to have_attributes(
+          errors?: true,
+          errors: a_hash_including(
+            contents_secrets: ['must be a dictionary']
+          )
+        )
+      end
+    end
   end
 
   context 'with invalid json' do

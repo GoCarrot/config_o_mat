@@ -187,8 +187,50 @@ module ConfigOMat
     end
   end
 
+  class Secret < ConfigItem
+    VALID_CONTENT_TYPES = [
+      'text/plain',
+      'application/json'
+    ].freeze
+
+    attr_reader :secret_id, :version_id, :version_stage, :content_type
+
+    def initialize(opts)
+      @secret_id = opts[:secret_id]
+      @version_id = opts[:version_id]
+      @version_stage = opts[:version_stage]
+      @content_type = opts[:content_type]&.downcase
+
+      if (@version_id.nil? || @version_id.empty?) && (@version_stage.nil? || @version_stage.empty?)
+        @version_stage = 'AWSCURRENT'
+      end
+
+      @content_type ||= 'application/json'
+    end
+
+    def validate
+      error :secret_id, 'must be present' if @secret_id.nil? || @secret_id.empty?
+      error :content_type, "must be one of #{VALID_CONTENT_TYPES}" unless VALID_CONTENT_TYPES.include?(@content_type)
+    end
+
+    def hash
+      secret_id.hash ^ version_id.hash ^ version_stage.hash & content_type.hash
+    end
+
+    def eql?(other)
+      return false if !super(other)
+      if other.secret_id != secret_id ||
+         other.version_id != version_id ||
+         other.version_stage != version_stage ||
+         other.content_type != content_type
+        return false
+      end
+      true
+    end
+  end
+
   class LoadedProfile < ConfigItem
-    attr_reader :name, :version, :contents
+    attr_reader :name, :version, :contents, :secret_defs
 
     PARSERS = {
       'text/plain' => proc { |str| str },
@@ -199,12 +241,14 @@ module ConfigOMat
     def initialize(name, version, contents, content_type)
       @name = name
       @version = version
+      @secret_defs = {}
 
       parser = PARSERS[content_type]
 
       if parser
         begin
           @contents = parser.call(contents)
+          parse_secrets if @contents.kind_of?(Hash)
         rescue StandardError => e
           error :contents, e
         end
@@ -232,6 +276,23 @@ module ConfigOMat
       return false if !super(other)
       return false if other.version != version || other.contents != contents || other.name != name
       true
+    end
+
+  private
+
+    def parse_secrets
+      secret_entries = @contents[:"aws:secrets"]
+      return if secret_entries.nil?
+
+      error :contents_secrets, 'must be a dictionary' if !secret_entries.kind_of?(Hash)
+
+      secret_entries.each do |(secret_name, secret_conf)|
+        secret_def = Secret.new(secret_conf)
+        secret_def.validate
+        error :"contents_secrets_#{secret_name}", secret_def.errors if secret_def.errors?
+
+        @secret_defs[secret_name] = secret_def
+      end
     end
   end
 
