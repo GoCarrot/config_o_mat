@@ -7,3 +7,6 @@ coverage/
 # YARD doc db and output
 .yardoc/
 doc/
+
+# Gem builds
+pkg/
