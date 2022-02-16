@@ -53,7 +53,7 @@ module ConfigOMat
             name: profile_name, previous_version: current_version, new_version: loaded_version
           )
 
-          profiles_to_apply << LoadedProfile.new(
+          profiles_to_apply << LoadedAppconfigProfile.new(
             profile_name, loaded_version, response.content.read, response.content_type
           )
         end

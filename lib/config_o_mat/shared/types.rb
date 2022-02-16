@@ -229,7 +229,7 @@ module ConfigOMat
     end
   end
 
-  class LoadedProfile < ConfigItem
+  class LoadedAppconfigProfile < ConfigItem
     attr_reader :name, :version, :contents, :secret_defs
 
     PARSERS = {
@@ -293,6 +293,38 @@ module ConfigOMat
 
         @secret_defs[secret_name] = secret_def
       end
+    end
+  end
+
+  class LoadedProfile < ConfigItem
+    extend Forwardable
+
+    attr_reader :secrets
+
+    def_delegators :@loaded_appconfig_profile, :name, :version, :contents
+
+    def initialize(loaded_appconfig_profile, secrets)
+      @loaded_appconfig_profile = loaded_appconfig_profile
+      @secrets = secrets || {}
+
+      @errors = @loaded_appconfig_profile.errors if @loaded_appconfig_profile.errors?
+    end
+
+    def validate
+    end
+
+    def hash
+      @loaded_appconfig_profile.hash ^ @secrets.hash
+    end
+
+    def to_h
+      contents
+    end
+
+    def eql?(other)
+      return false if !super(other)
+      return false if other.loaded_appconfig_profile != @loaded_appconfig_profile || other.secrets != @secrets
+      true
     end
   end
 

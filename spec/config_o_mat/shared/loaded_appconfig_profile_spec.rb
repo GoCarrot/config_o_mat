@@ -16,7 +16,7 @@
 
 require 'config_o_mat/shared/types'
 
-RSpec.describe ConfigOMat::LoadedProfile do
+RSpec.describe ConfigOMat::LoadedAppconfigProfile do
   subject(:profile) do
     described_class.new(name, version, contents, content_type)
   end

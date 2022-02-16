@@ -60,8 +60,14 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
 
   let(:applied_profiles) do
     {
-      source0: ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-      source1: ConfigOMat::LoadedProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json')
+      source0: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+        nil
+      ),
+      source1: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+        nil
+      )
     }
   end
 
@@ -107,7 +113,10 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
 
     context 'when applying a profile' do
       let(:applying_profile) do
-        ConfigOMat::LoadedProfile.new(:source1, '3', { answer: 255 }.to_json, 'application/json')
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '3', { answer: 255 }.to_json, 'application/json'),
+          nil
+        )
       end
 
       it 'uses the profile being applied' do
@@ -126,7 +135,10 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
 
       context 'when the profile is errored' do
         let(:applying_profile) do
-          ConfigOMat::LoadedProfile.new(:source1, '3', '{"answer: 181', 'application/json')
+          ConfigOMat::LoadedProfile.new(
+            ConfigOMat::LoadedAppconfigProfile.new(:source1, '3', '{"answer: 181', 'application/json'),
+            nil
+          )
         end
 
         it 'errors' do
@@ -184,7 +196,10 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
   context 'when a template errors' do
     let(:applied_profiles) do
       {
-        source0: ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+        source0: ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+          nil
+        )
       }
     end
 

@@ -48,7 +48,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
   end
 
   let(:applying_profile) do
-    ConfigOMat::LoadedProfile.new(:source0, '1', '{"answer": 42', 'application/json')
+    ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', '{"answer": 42', 'application/json')
   end
 
   let(:client_id) { SecureRandom.uuid }
@@ -73,7 +73,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
   context 'when the profile is updated' do
     it 'updates applying_profile' do
       expect(state.applying_profile).to eq(
-        ConfigOMat::LoadedProfile.new(:source0, '2', { answer: 42 }.to_json, 'application/json')
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', { answer: 42 }.to_json, 'application/json')
       )
     end
 

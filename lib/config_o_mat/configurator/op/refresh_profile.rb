@@ -56,7 +56,7 @@ module ConfigOMat
           name: profile_name, previous_version: profile_version, new_version: loaded_version
         )
 
-        self.applying_profile = LoadedProfile.new(
+        self.applying_profile = LoadedAppconfigProfile.new(
           profile_name, loaded_version, response.content.read, response.content_type
         )
       end

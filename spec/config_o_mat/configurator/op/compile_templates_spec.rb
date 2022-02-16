@@ -48,8 +48,14 @@ RSpec.describe ConfigOMat::Op::CompileTemplates do
 
   let(:profiles) do
     {
-      source0: ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-      source1: ConfigOMat::LoadedProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json')
+      source0: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+        nil
+      ),
+      source1: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+        nil
+      )
     }
   end
 

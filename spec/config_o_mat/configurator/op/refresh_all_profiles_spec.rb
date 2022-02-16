@@ -53,8 +53,8 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
 
   let(:applied_profiles) do
     {
-      source0: ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-      source1: ConfigOMat::LoadedProfile.new(:source1, '1', { answer: 255 }.to_json, 'application/json')
+      source0: ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+      source1: ConfigOMat::LoadedAppconfigProfile.new(:source1, '1', { answer: 255 }.to_json, 'application/json')
     }
   end
 
@@ -97,8 +97,8 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
 
     it 'sets the profiles to apply' do
       expect(state.profiles_to_apply).to contain_exactly(
-        ConfigOMat::LoadedProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
-        ConfigOMat::LoadedProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
+        ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+        ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
       )
     end
 
@@ -134,9 +134,9 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
 
     it 'sets the profiles to apply' do
       expect(state.profiles_to_apply).to contain_exactly(
-        ConfigOMat::LoadedProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
-        ConfigOMat::LoadedProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
-        ConfigOMat::LoadedProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '1', { answer: 42 }.to_json, 'application/json'),
+        ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+        ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json')
       )
     end
 
