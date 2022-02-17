@@ -31,3 +31,5 @@ begin
 rescue LoadError
   # No doc generation for you
 end
+
+require "bundler/gem_tasks"

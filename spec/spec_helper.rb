@@ -20,9 +20,11 @@ SimpleCov.start do
   enable_coverage :branch
 
   add_group 'Specs', 'spec'
-  add_group 'Ops', 'lib/op'
-  add_group 'Conds', 'lib/cond'
-  add_group 'App', 'lib/'
+  add_group 'MetaConfigurator', 'lib/config_o_mat/meta_configurator'
+  add_group 'Configurator', 'lib/config_o_mat/configurator'
+  add_group 'FlipFlopper', 'lib/config_o_mat/flip_flopper'
+  add_group 'Shared', 'lib/config_o_mat/shared'
+  add_group 'App', 'lib/config_o_mat'
 end
 
 $LOAD_PATH << File.join(__dir__, '..', 'lib')

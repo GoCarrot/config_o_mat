@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+# Copyright 2021 Teak.io, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+require 'config_o_mat/configurator'
+require 'logsformyfamily'
+
+LogsForMyFamily.configure do |config|
+  config.version = ConfigOMat::Configurator::VM::VERSION
+  config.app_name = ConfigOMat::Configurator::VM.name
+end
+
+logger = LogsForMyFamily::Logger.new
+logger.backends = [ConfigOMat::StdoutLogWriter.new]
+log_level = ENV['CONFIG_O_MAT_LOG_LEVEL']&.to_sym
+if log_level && LogsForMyFamily::Logger::LEVELS.include?(log_level)
+  logger.filter_level(log_level)
+elsif log_level
+  warn "Unknown log level requested in CONFIG_O_MAT_LOG_LEVEL: #{log_level}"
+end
+
+memory = ConfigOMat::Configurator::Memory.new(argv: ARGV, env: ENV, logger: logger)
+vm = ConfigOMat::Configurator::VM.new(memory)
+vm.call
+
+if vm.errors?
+  warn "Errored executing #{vm.error_op.class.name}"
+  warn "Errors: #{vm.errors}"
+
+  if vm.recovery_errors?
+    warn ''
+    warn "Errors recovering from error. Errored executing recovery #{vm.current_op.class.name}"
+    warn "Errors: #{vm.recovery_errors}"
+  end
+
+  exit 1
+end
