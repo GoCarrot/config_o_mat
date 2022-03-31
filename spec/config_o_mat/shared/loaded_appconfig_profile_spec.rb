@@ -17,26 +17,29 @@
 require 'config_o_mat/shared/types'
 
 RSpec.describe ConfigOMat::LoadedAppconfigProfile do
+  module HashExt
+    refine Hash do
+      def deep_stringify_keys
+        map { |k, v| [k.to_s, v.kind_of?(Hash) ? v.deep_stringify_keys : v] }.to_h
+      end
+    end
+  end
+
+  using HashExt
+
   subject(:profile) do
     described_class.new(name, version, contents, content_type)
   end
 
   let(:name) { :source0 }
   let(:version) { '1' }
-  let(:contents) { { answer: 42 }.to_json }
+  let(:content_hash) { { answer: 42 } }
+  let(:contents) { content_hash.to_json }
   let(:content_type) { 'application/json' }
 
-  context 'with json' do
-    it 'parses the json' do
-      expect(profile).to have_attributes(
-        name: name, version: version,
-        contents: { answer: 42 },
-        errors?: false
-      )
-    end
-
+  shared_examples_for 'aws:secrets' do
     context 'with aws:secrets' do
-      let(:contents) do
+      let(:content_hash) do
         {
           answer: 42,
           :"aws:secrets" => {
@@ -56,13 +59,13 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
               content_type: 'text/plain'
             }
           }
-        }.to_json
+        }
       end
 
       it 'provides secrets' do
         expect(profile).to have_attributes(
           name: name, version: version,
-          contents: JSON.parse(contents, symbolize_names: true),
+          contents: described_class::PARSERS[content_type].call(contents),
           errors?: false,
           secret_defs: a_hash_including(
             test: eq(
@@ -107,7 +110,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
     end
 
     context 'with invalid secrets' do
-      let(:contents) do
+      let(:content_hash) do
         {
           answer: 42,
           :"aws:secrets" => {
@@ -119,7 +122,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
               content_type: 'application/wtf'
             },
           }
-        }.to_json
+        }
       end
 
       it 'errors' do
@@ -138,11 +141,11 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
     end
 
     context 'with an invalid secrets type' do
-      let(:contents) do
+      let(:content_hash) do
         {
           answer: 42,
           :"aws:secrets" => []
-        }.to_json
+        }
       end
 
       it 'errors' do
@@ -154,6 +157,18 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
         )
       end
     end
+  end
+
+  context 'with json' do
+    it 'parses the json' do
+      expect(profile).to have_attributes(
+        name: name, version: version,
+        contents: { answer: 42 },
+        errors?: false
+      )
+    end
+
+    include_examples 'aws:secrets'
   end
 
   context 'with invalid json' do
@@ -168,7 +183,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
   end
 
   context 'with yaml' do
-    let(:contents) { "answer: 42\n" }
+    let(:contents) { YAML.dump(content_hash.deep_stringify_keys) }
     let(:content_type) { 'application/x-yaml' }
 
     it 'parses the yaml' do
@@ -177,6 +192,8 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
         errors?: false
       )
     end
+
+    include_examples 'aws:secrets'
   end
 
   context 'with invalid yaml' do
