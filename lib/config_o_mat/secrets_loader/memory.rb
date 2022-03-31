@@ -38,7 +38,7 @@ module ConfigOMat
         @logger = logger
       end
 
-       def update_secret_defs_to_load(defs)
+      def update_secret_defs_to_load(defs)
         @loaded_secrets = {}
         @secret_defs_to_load = defs
         self
