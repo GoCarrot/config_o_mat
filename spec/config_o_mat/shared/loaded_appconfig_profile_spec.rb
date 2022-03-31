@@ -37,6 +37,19 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
   let(:contents) { content_hash.to_json }
   let(:content_type) { 'application/json' }
 
+  shared_examples_for 'invalid key' do
+    context 'when accessing an invalid key' do
+      it 'raises an error' do
+        expect { profile.contents[:dne] }.to raise_error(
+          an_instance_of(KeyError).and having_attributes(
+            key: :dne,
+            message: "No key :dne in profile #{name}"
+          )
+        )
+      end
+    end
+  end
+
   shared_examples_for 'aws:secrets' do
     context 'with aws:secrets' do
       let(:content_hash) do
@@ -168,6 +181,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
       )
     end
 
+    include_examples 'invalid key'
     include_examples 'aws:secrets'
   end
 
@@ -193,6 +207,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
       )
     end
 
+    include_examples 'invalid key'
     include_examples 'aws:secrets'
   end
 

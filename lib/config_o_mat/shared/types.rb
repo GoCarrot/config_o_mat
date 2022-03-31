@@ -206,7 +206,12 @@ module ConfigOMat
       if parser
         begin
           @contents = parser.call(contents)
-          parse_secrets if @contents.kind_of?(Hash)
+          if @contents.kind_of?(Hash)
+            parse_secrets
+            @contents.default_proc = proc do |hash, key|
+              raise KeyError.new("No key #{key.inspect} in profile #{name}", key: key, receiver: hash)
+            end
+          end
         rescue StandardError => e
           error :contents, e
         end
@@ -239,7 +244,7 @@ module ConfigOMat
   private
 
     def parse_secrets
-      secret_entries = @contents[:"aws:secrets"]
+      secret_entries = @contents.fetch(:"aws:secrets", nil)
       return if secret_entries.nil?
 
       error :contents_secrets, 'must be a dictionary' if !secret_entries.kind_of?(Hash)
