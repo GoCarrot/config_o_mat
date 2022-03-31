@@ -109,7 +109,7 @@ RSpec.describe ConfigOMat::Op::LoadSecret do
 
   context 'with no version_id or version_stage' do
     it 'makes a request for AWSCURRENT' do
-
+      expect(client_stub.api_requests[0][:params]).to eq(secret_id: 'test', version_stage: 'AWSCURRENT')
     end
 
     include_examples 'retrieved secret'
