@@ -310,6 +310,11 @@ module ConfigOMat
 
       begin
         @contents = LoadedAppconfigProfile::PARSERS[content_type].call(secret_string)
+        if @contents.kind_of?(Hash)
+          @contents.default_proc = proc do |hash, key|
+            raise KeyError.new("No key #{key.inspect} in secret #{name}", key: key, receiver: hash)
+          end
+        end
       rescue StandardError => e
         error :contents, e
       end
