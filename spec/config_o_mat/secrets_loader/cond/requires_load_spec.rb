@@ -29,7 +29,7 @@ RSpec.describe ConfigOMat::Cond::RequiresLoad do
   subject(:result) { @result }
 
   let(:state) do
-    s = ConfigOMat::SecretsLoader::Memory.new(
+    ConfigOMat::SecretsLoader::Memory.new(
       loading_secret: loading_secret
     )
   end
