@@ -233,3 +233,17 @@ RSpec.describe ConfigOMat::Profile do
     end
   end
 end
+
+RSpec.describe ConfigOMat::LoadedFacterProfile do
+  let(:name) { :facter_test }
+
+  subject { described_class.new(name) }
+
+  it 'converts keys to symbols' do
+    expect(subject.contents[:os][:macosx][:version][:major]).to eq '12'
+  end
+
+  it 'raises an exception on accessing an invalid key' do
+    expect { subject.contents[:networking][:interfaces][:lo0][:bindings][0][:netmas] }.to raise_error(KeyError, /No key :netmas in profile facter_test/)
+  end
+end
