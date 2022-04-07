@@ -1,3 +1,10 @@
+## 0.4.0
+
+NEW FEATURES:
+
+* Facter support. In your configomat config set a top level `facter` key to either truthy or a string. If truthy, facter data will be exposed in a profile named `facter` in all templates. If set to a string, facter data will be exposed in a profile with the given name in all templates.
+* Attempting to access a configuration variable from a profile or secret that does not exist using `#[]` will now raise an exception indicating the key being incorrectly accessed. If you need to access optionally present configuration variables from profiles or secrets use `#fetch(key, nil)`.
+
 ## 0.3.0
 
 NEW FEATURES:
