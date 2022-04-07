@@ -27,9 +27,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
     described_class.call(state)
   end
 
-  before { @result = perform }
-
-  subject(:result) { @result }
+  subject(:result) { perform }
 
   let(:state) do
     ConfigOMat::Configurator::Memory.new(
@@ -86,6 +84,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
 
   context 'when the profile is updated' do
     it 'updates applying_profile' do
+      subject
       expect(state.applying_profile).to eq(
         ConfigOMat::LoadedProfile.new(
           ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', { answer: 42 }.to_json, 'application/json'),
@@ -134,6 +133,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       end
 
       it 'updates applying_profile' do
+        subject
         expect(state.applying_profile).to eq(
           ConfigOMat::LoadedProfile.new(
             ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', with_secrets_content, 'application/json'),
@@ -178,6 +178,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       end
 
       it 'logs the update' do
+        subject
         expect(@messages).to include(
           contain_exactly(
             :notice, :updated_profile, a_hash_including(name: :source0, previous_version: '1', new_version: '2')
@@ -195,10 +196,12 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
     end
 
     it 'does not update applying_profile' do
+      subject
       expect(state.applying_profile).to eq applying_profile
     end
 
     it 'does not error' do
+      subject
       expect(result.errors?).to be false
     end
 
@@ -211,6 +214,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       end
 
       it 'logs a warning' do
+        subject
         expect(@messages).to include(
           contain_exactly(
             :warning, :no_update, a_hash_including(name: :source0, version: '1')
@@ -228,9 +232,93 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
     end
 
     it 'errors' do
+      subject
       expect(result.errors).to  match(
         source0: [an_instance_of(Aws::AppConfig::Errors::BadRequestException)]
       )
+    end
+  end
+
+  context 'with a facter profile' do
+    let(:profile_defs) do
+      {
+        source0: ConfigOMat::FacterProfile.new
+      }
+    end
+
+    let(:applying_profile) do
+      ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedFacterProfile.new(:source0),
+        nil
+      )
+    end
+
+    context 'when the profile is not updated' do
+      it 'does not update applying_profile' do
+        subject
+        expect(state.applying_profile).to eq applying_profile
+      end
+
+      it 'does not error' do
+        subject
+        expect(result.errors?).to be false
+      end
+
+      context 'with a logger' do
+        let(:logger) do
+          @messages = []
+          l = LogsForMyFamily::Logger.new
+          l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+          l
+        end
+
+        it 'logs a warning' do
+          subject
+          expect(@messages).to include(
+            contain_exactly(
+              :warning, :no_update, a_hash_including(name: :source0, version: applying_profile.version)
+            )
+          )
+        end
+      end
+    end
+
+    context 'when the profile is updated' do
+      before do
+        # Generate the facter profile before we stub out the constructor.
+        applying_profile
+        allow(ConfigOMat::LoadedFacterProfile).to receive(:new).and_return(
+          OpenStruct.new(name: :source0, version: 42, contents: {is: 'new'})
+        )
+      end
+
+      it 'updates applying_profile' do
+        subject
+        expect(state.applying_profile).to eq(
+          ConfigOMat::LoadedProfile.new(
+            OpenStruct.new(name: :source0, version: 42, contents: {is: 'new'}),
+            nil
+          )
+        )
+      end
+
+      context 'with a logger' do
+        let(:logger) do
+          @messages = []
+          l = LogsForMyFamily::Logger.new
+          l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
+          l
+        end
+
+        it 'logs the update' do
+          subject
+          expect(@messages).to include(
+            contain_exactly(
+              :notice, :updated_profile, a_hash_including(name: :source0, previous_version: applying_profile.version, new_version: 42)
+            )
+          )
+        end
+      end
     end
   end
 end
