@@ -187,6 +187,9 @@ module ConfigOMat
     end
   end
 
+  class FacterProfile < ConfigItem
+  end
+
   class LoadedAppconfigProfile < ConfigItem
     attr_reader :name, :version, :contents, :secret_defs
 
