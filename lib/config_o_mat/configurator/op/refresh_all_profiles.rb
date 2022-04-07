@@ -29,56 +29,82 @@ module ConfigOMat
         self.last_refresh_time = Time.now.to_i
 
         profile_defs.each do |(profile_name, definition)|
-          request = {
-            application: definition.application, environment: definition.environment,
-            configuration: definition.profile, client_id: client_id
-          }
+          if definition.kind_of?(ConfigOMat::Profile)
+            refresh_appconfig_profile(profile_name, definition)
+          elsif definition.kind_of?(ConfigOMat::FacterProfile)
+            refresh_facter_profile(profile_name)
+          else
+            error profile_name, "unknown profile type #{definition.class.name}"
+          end
+        end
+      end
 
-          current_version = applied_profiles&.fetch(profile_name, nil)&.version
-          request[:client_configuration_version] = current_version if current_version
+    private
 
-          response =
-            begin
-              appconfig_client.get_configuration(request)
-            rescue StandardError => e
-              error profile_name, e
-              nil
-            end
+      def refresh_facter_profile(profile_name)
+        current_version = applied_profiles&.fetch(profile_name, nil)&.version
+        new_profile = ConfigOMat::LoadedFacterProfile.new(profile_name)
 
-          next if response.nil?
+        return if new_profile.version == current_version
 
-          loaded_version = response.configuration_version
-          next if current_version && loaded_version == current_version
+        logger&.notice(
+          :updated_profile,
+          name: profile_name, previous_version: current_version, new_version: new_profile.version
+        )
 
-          logger&.notice(
-            :updated_profile,
-            name: profile_name, previous_version: current_version, new_version: loaded_version
-          )
+        profiles_to_apply << LoadedProfile.new(new_profile, nil)
+      end
 
-          profile = LoadedAppconfigProfile.new(
-            profile_name, loaded_version, response.content.read, response.content_type
-          )
+      def refresh_appconfig_profile(profile_name, definition)
+        request = {
+          application: definition.application, environment: definition.environment,
+          configuration: definition.profile, client_id: client_id
+        }
 
-          loaded_secrets = nil
+        current_version = applied_profiles&.fetch(profile_name, nil)&.version
+        request[:client_configuration_version] = current_version if current_version
 
-          if !profile.secret_defs.empty?
-            self.secrets_loader_memory ||= ConfigOMat::SecretsLoader::Memory.new(secretsmanager_client: secretsmanager_client)
-            secrets_loader_memory.update_secret_defs_to_load(profile.secret_defs.values)
-
-            vm = ConfigOMat::SecretsLoader::VM.new(secrets_loader_memory).call
-
-            if vm.errors?
-              error :"#{profile_name}_secrets", vm.errors
-              next
-            end
-
-            loaded_secrets = secrets_loader_memory.loaded_secrets.each_with_object({}) do |(key, value), hash|
-              hash[value.name] = value
-            end
+        response =
+          begin
+            appconfig_client.get_configuration(request)
+          rescue StandardError => e
+            error profile_name, e
+            nil
           end
 
-          profiles_to_apply << LoadedProfile.new(profile, loaded_secrets)
+        return if response.nil?
+
+        loaded_version = response.configuration_version
+        return if current_version && loaded_version == current_version
+
+        logger&.notice(
+          :updated_profile,
+          name: profile_name, previous_version: current_version, new_version: loaded_version
+        )
+
+        profile = LoadedAppconfigProfile.new(
+          profile_name, loaded_version, response.content.read, response.content_type
+        )
+
+        loaded_secrets = nil
+
+        if !profile.secret_defs.empty?
+          self.secrets_loader_memory ||= ConfigOMat::SecretsLoader::Memory.new(secretsmanager_client: secretsmanager_client)
+          secrets_loader_memory.update_secret_defs_to_load(profile.secret_defs.values)
+
+          vm = ConfigOMat::SecretsLoader::VM.new(secrets_loader_memory).call
+
+          if vm.errors?
+            error :"#{profile_name}_secrets", vm.errors
+            return
+          end
+
+          loaded_secrets = secrets_loader_memory.loaded_secrets.each_with_object({}) do |(key, value), hash|
+            hash[value.name] = value
+          end
         end
+
+        profiles_to_apply << LoadedProfile.new(profile, loaded_secrets)
       end
     end
   end
