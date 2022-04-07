@@ -94,7 +94,8 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
         profile_defs: match({
           source0: ConfigOMat::Profile.new(application: 'test', environment: 'test', profile: 'test'),
           source1: ConfigOMat::Profile.new(application: 'bar', environment: 'test', profile: 'test'),
-          source2: ConfigOMat::Profile.new(application: 'baz', environment: 'baz', profile: 'other')
+          source2: ConfigOMat::Profile.new(application: 'baz', environment: 'baz', profile: 'other'),
+          source4: ConfigOMat::FacterProfile.new
         }),
         template_defs: match(templates),
         service_defs: match(services),
@@ -149,6 +150,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
                 retry_count: 6,
                 retry_wait: 12,
                 region: 'us-east-1',
+                facter: 'source4',
                 services: {
                   test0: {
                     systemd_unit: 'test0',
@@ -262,7 +264,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
   context 'with defaults' do
     let(:configuration_directory) { 'use_defaults' }
 
-    it 'uses default config and logger' do
+    it 'uses default config, logger, and facter profile' do
       expect(state).to have_attributes(
         refresh_interval: 5,
         client_id: match(/\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}\z/),
@@ -272,7 +274,10 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
         retry_count: 3,
         retries_left: 3,
         retry_wait: 2,
-        region: nil
+        region: nil,
+        profile_defs: match(hash_including(
+          facter: ConfigOMat::FacterProfile.new
+        ))
       )
     end
 
@@ -340,6 +345,16 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
     it 'errors on log_level' do
       expect(result.errors).to match(
         log_level: [include('must be one of')]
+      )
+    end
+  end
+
+  context 'when facter conflicts with a profile' do
+    let(:configuration_directory) { 'facter_conflict' }
+
+    it 'errors on facter' do
+      expect(result.errors).to match(
+        facter: [include('conflicts with profile')]
       )
     end
   end

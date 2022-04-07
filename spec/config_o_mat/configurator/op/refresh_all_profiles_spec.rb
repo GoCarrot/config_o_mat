@@ -49,7 +49,8 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
     {
       source0: ConfigOMat::Profile.new(application: 'test', environment: 'test', profile: 'test'),
       source1: ConfigOMat::Profile.new(application: 'foo', environment: 'bar', profile: 'boo'),
-      source2: ConfigOMat::Profile.new(application: 'other', environment: 'test', profile: 'test')
+      source2: ConfigOMat::Profile.new(application: 'other', environment: 'test', profile: 'test'),
+      source3: ConfigOMat::FacterProfile.new
     }
   end
 
@@ -61,6 +62,10 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
       ),
       source1: ConfigOMat::LoadedProfile.new(
         ConfigOMat::LoadedAppconfigProfile.new(:source1, '1', { answer: 255 }.to_json, 'application/json'),
+        nil
+      ),
+      source3: ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedFacterProfile.new(:source3),
         nil
       )
     }
@@ -251,6 +256,10 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
         ),
         ConfigOMat::LoadedProfile.new(
           ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json'),
+          nil
+        ),
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedFacterProfile.new(:source3),
           nil
         )
       )

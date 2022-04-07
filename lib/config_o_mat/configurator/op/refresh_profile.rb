@@ -23,6 +23,38 @@ module ConfigOMat
       writes :applying_profile, :secrets_loader_memory
 
       def call
+        if applying_profile.loaded_profile_data.kind_of?(ConfigOMat::LoadedAppconfigProfile)
+          refresh_appconfig_profile
+        elsif applying_profile.loaded_profile_data.kind_of?(ConfigOMat::LoadedFacterProfile)
+          refresh_facter_profile
+        end
+      end
+
+    private
+
+      def refresh_facter_profile
+        profile_name = applying_profile.name
+        profile_version = applying_profile.version
+        definition = profile_defs[profile_name]
+        new_profile = ConfigOMat::LoadedFacterProfile.new(profile_name)
+
+        if new_profile.version == profile_version
+          logger&.warning(
+            :no_update,
+            name: profile_name, version: profile_version
+          )
+          return
+        end
+
+        logger&.notice(
+          :updated_profile,
+          name: profile_name, previous_version: profile_version, new_version: new_profile.version
+        )
+
+        self.applying_profile = LoadedProfile.new(new_profile, nil)
+      end
+
+      def refresh_appconfig_profile
         profile_name = applying_profile.name
         profile_version = applying_profile.version
         definition = profile_defs[profile_name]

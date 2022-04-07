@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'facter'
+
 require 'json'
 require 'yaml'
 require 'digest'
@@ -187,6 +189,83 @@ module ConfigOMat
     end
   end
 
+  class FacterProfile < ConfigItem
+  end
+
+  class LoadedFacterProfile < ConfigItem
+    CLEAR_FROM_FACTER = [
+      "memoryfree", "memoryfree_mb", "load_averages", "uptime", "system_uptime", "uptime_seconds", "uptime_hours", "uptime_days",
+      {"ec2_metadata" => ["identity-credentials"]},
+      {"memory" => [{"system" => ["capacity", "available_bytes", "used", "used_bytes", "available"] }] }
+    ].freeze
+
+    attr_reader :name, :version, :contents
+
+    def initialize(name)
+      @name = name
+      load_from_facter
+      @version = contents.hash
+    end
+
+    def validate
+      error :name, 'must be present' if @name.nil? || @name.empty?
+      error :contents, 'must be present' if @contents.nil? || @contents.empty?
+      error :contents, 'must be a hash' if !@contents.kind_of?(Hash)
+    end
+
+    def hash
+      @name.hash ^ @version
+    end
+
+    def to_h
+      @contents
+    end
+
+    def eql?(other)
+      return false if !super(other)
+      return false if other.version != version || other.name != name
+      true
+    end
+
+  private
+
+    def load_from_facter
+      Facter.clear
+      # This is to work around a bug in Facter wherein it fails to invalidate a second cache of the
+      # IMDSv2 token.
+      Facter::Resolvers::Ec2.instance_variable_set(:@v2_token, nil)
+      new_facts = Facter.to_hash
+      clear(new_facts, CLEAR_FROM_FACTER)
+      transform(new_facts)
+      @contents = new_facts
+    end
+
+    def clear(hash, diffs)
+      diffs.each do |diff|
+        if diff.kind_of?(Hash)
+          diff.each do |(key, values)|
+            clear(hash[key], values) if hash.key?(key)
+          end
+        elsif hash
+          hash.delete(diff)
+        end
+      end
+    end
+
+    def transform(hash)
+      return unless hash.kind_of?(Hash)
+      hash.transform_keys!(&:to_sym)
+      hash.default_proc = proc { |hash, key| raise KeyError.new("No key #{key.inspect} in profile #{name}", key: key, receiver: hash) }
+      hash.each_value do |value|
+        if value.kind_of?(Hash)
+          transform(value)
+        elsif value.kind_of?(Array)
+          value.each { |v| transform(v) }
+        end
+      end
+    end
+  end
+
   class LoadedAppconfigProfile < ConfigItem
     attr_reader :name, :version, :contents, :secret_defs
 
@@ -345,22 +424,22 @@ module ConfigOMat
   class LoadedProfile < ConfigItem
     extend Forwardable
 
-    attr_reader :secrets, :loaded_appconfig_profile
+    attr_reader :secrets, :loaded_profile_data
 
-    def_delegators :@loaded_appconfig_profile, :name, :version, :contents
+    def_delegators :@loaded_profile_data, :name, :version, :contents
 
-    def initialize(loaded_appconfig_profile, secrets)
-      @loaded_appconfig_profile = loaded_appconfig_profile
+    def initialize(loaded_profile_data, secrets)
+      @loaded_profile_data = loaded_profile_data
       @secrets = secrets || {}
 
-      @errors = @loaded_appconfig_profile.errors if @loaded_appconfig_profile.errors?
+      @errors = @loaded_profile_data.errors if @loaded_profile_data.errors?
     end
 
     def validate
     end
 
     def hash
-      @loaded_appconfig_profile.hash ^ @secrets.hash
+      @loaded_profile_data.hash ^ @secrets.hash
     end
 
     def to_h
@@ -369,7 +448,7 @@ module ConfigOMat
 
     def eql?(other)
       return false if !super(other)
-      return false if other.loaded_appconfig_profile != @loaded_appconfig_profile || other.secrets != @secrets
+      return false if other.loaded_profile_data != @loaded_profile_data || other.secrets != @secrets
       true
     end
   end

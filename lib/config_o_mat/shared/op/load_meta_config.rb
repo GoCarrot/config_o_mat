@@ -126,6 +126,16 @@ module ConfigOMat
         self.template_defs = instantiate.call(:templates, Template)
         self.profile_defs = instantiate.call(:profiles, Profile)
 
+        facter = merged_config[:facter]
+        if facter
+          facter_key = facter.kind_of?(String) ? facter.to_sym : :facter
+          if profile_defs.key?(facter_key)
+            error :facter, "conflicts with profile #{facter_key}"
+          else
+            profile_defs[facter_key] = ConfigOMat::FacterProfile.new
+          end
+        end
+
         self.logger = LogsForMyFamily::Logger.new if !logger
 
         log_type = merged_config[:log_type]&.to_sym || :stdout

@@ -44,6 +44,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency('lifecycle_vm', '~> 0.1.1')
   spec.add_dependency('ruby-dbus', '~> 0.16.0')
   spec.add_dependency('sd_notify', '~> 0.1.1')
+  spec.add_dependency('facter', ['~> 4.2', '>= 4.2.8'])
 
   spec.add_development_dependency('simplecov', '~> 0.21.2')
   spec.add_development_dependency('rspec', '~> 3.10')
