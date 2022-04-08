@@ -28,7 +28,7 @@ module ConfigOMat
         self.compiled_templates = template_defs.each_with_object({}) do |(key, templ_def), hash|
           filename = File.join(configuration_directory, 'templates', templ_def.src)
           begin
-            templ = ERB.new(File.read(filename))
+            templ = ERB.new(File.read(filename), trim_mode: '<>')
             templ.filename = filename
             hash[key] = templ.def_class(Object, 'render(profiles)').new
           rescue SyntaxError, StandardError => e
