@@ -1,3 +1,9 @@
+## 0.4.1
+
+ENHANCEMENTS:
+
+* Omit empty lines in generated config when using <% %> ERB templates.
+
 ## 0.4.0
 
 NEW FEATURES:
