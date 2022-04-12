@@ -195,7 +195,7 @@ module ConfigOMat
   class LoadedFacterProfile < ConfigItem
     CLEAR_FROM_FACTER = [
       "memoryfree", "memoryfree_mb", "load_averages", "uptime", "system_uptime", "uptime_seconds", "uptime_hours", "uptime_days",
-      {"ec2_metadata" => ["identity-credentials"]},
+      {"ec2_metadata" => ["identity-credentials", "iam"]},
       {"memory" => [{"system" => ["capacity", "available_bytes", "used", "used_bytes", "available"] }] }
     ].freeze
 
