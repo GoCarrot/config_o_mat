@@ -47,15 +47,9 @@ RSpec.describe ConfigOMat::Op::DetermineRunningInstance do
 
   let(:logger) { nil }
 
-  context 'with a logger' do
+  context 'with a logger', logger: true do
     let(:test1_status) { ACTIVE_STATES.sample }
     let(:test2_status) { INACTIVE_STATES.sample }
-    let(:logger) do
-      @messages = []
-      l = LogsForMyFamily::Logger.new
-      l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-      l
-    end
 
     it 'logs the status of each instance' do
       expect(@messages).to include(

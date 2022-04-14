@@ -69,14 +69,7 @@ RSpec.describe ConfigOMat::Op::StopInitialInstance do
     end
   end
 
-  context 'with a logger' do
-    let(:logger) do
-      @messages = []
-      l = LogsForMyFamily::Logger.new
-      l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-      l
-    end
-
+  context 'with a logger', logger: true do
     it 'logs service start' do
       expect(@messages).to include(
         contain_exactly(:notice, :service_stop, a_hash_including(name: "#{state.service}#{state.running_instance}"))

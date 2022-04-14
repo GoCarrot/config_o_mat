@@ -71,14 +71,7 @@ RSpec.describe ConfigOMat::Op::CheckServiceStatus do
         expect(state.activation_status).to eq :failed
       end
 
-      context 'with a logger' do
-        let(:logger) do
-          @messages = []
-          l = LogsForMyFamily::Logger.new
-          l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-          l
-        end
-
+      context 'with a logger', logger: true do
         it 'logs ipc failure' do
           expect(@messages).to include(
             contain_exactly(:error, :ipc_failure, a_hash_including(name: "test@#{activating_instance}"))
@@ -120,14 +113,7 @@ RSpec.describe ConfigOMat::Op::CheckServiceStatus do
   end
 
   shared_examples_for 'logged status' do
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs service status' do
         expect(@messages).to include(
           contain_exactly(:info, :service_status, a_hash_including(name: "test@#{activating_instance}", status: unit_status))

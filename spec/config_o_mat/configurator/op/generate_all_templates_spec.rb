@@ -157,14 +157,7 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
       end
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs changed templates' do
         expect(@messages).to include(
           contain_exactly(

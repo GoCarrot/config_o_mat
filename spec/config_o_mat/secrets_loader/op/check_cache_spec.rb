@@ -84,14 +84,7 @@ RSpec.describe ConfigOMat::Op::CheckCache do
       )
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs' do
         expect(@messages).to include(
           contain_exactly(
@@ -117,14 +110,7 @@ RSpec.describe ConfigOMat::Op::CheckCache do
       )
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs' do
         expect(@messages).to include(
           contain_exactly(

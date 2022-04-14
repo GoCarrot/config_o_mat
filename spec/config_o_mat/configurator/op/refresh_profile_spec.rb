@@ -169,14 +169,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       end
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs the update' do
         subject
         expect(@messages).to include(
@@ -205,14 +198,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       expect(result.errors?).to be false
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs a warning' do
         subject
         expect(@messages).to include(
@@ -264,14 +250,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
         expect(result.errors?).to be false
       end
 
-      context 'with a logger' do
-        let(:logger) do
-          @messages = []
-          l = LogsForMyFamily::Logger.new
-          l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-          l
-        end
-
+      context 'with a logger', logger: true do
         it 'logs a warning' do
           subject
           expect(@messages).to include(
@@ -302,14 +281,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
         )
       end
 
-      context 'with a logger' do
-        let(:logger) do
-          @messages = []
-          l = LogsForMyFamily::Logger.new
-          l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-          l
-        end
-
+      context 'with a logger', logger: true do
         it 'logs the update' do
           subject
           expect(@messages).to include(

@@ -109,14 +109,7 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
       end
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs a service reload' do
         expect(@messages).to include(
           contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other'))
@@ -154,14 +147,7 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
       end
     end
 
-    context 'with a logger' do
-      let(:logger) do
-        @messages = []
-        l = LogsForMyFamily::Logger.new
-        l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-        l
-      end
-
+    context 'with a logger', logger: true do
       it 'logs a service reload' do
         expect(@messages).to include(
           contain_exactly(:notice, :service_restart, a_hash_including(name: :service1, systemd_unit: 'other@'))
@@ -170,7 +156,7 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
     end
   end
 
-  context 'when restart_mode=flip_flop' do
+  context 'when restart_mode=flip_flop', logger: true do
     let(:restart_mode) { 'flip_flop' }
 
     let(:flip_flop_stub) do
@@ -182,13 +168,6 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
     end
 
     let(:flip_flop_errors) { nil }
-
-    let(:logger) do
-      @messages = []
-      l = LogsForMyFamily::Logger.new
-      l.backends = [proc { |level_name, event_type, merged_data| @messages << [level_name, event_type, merged_data] }]
-      l
-    end
 
     it 'creates a flip flopper vm with proper memory' do
       expect(ConfigOMat::FlipFlopper::VM).to have_received(:new).with(
