@@ -23,13 +23,23 @@ module ConfigOMat
     class NextTick < LifecycleVM::OpBase
       PAUSE_INTERVAL = 1
 
-      reads :last_refresh_time, :refresh_interval, :run_count, :retry_count
+      reads :last_refresh_time, :refresh_interval, :run_count, :retry_count, :gc_stat, :gc_compact
       writes :next_state, :run_count, :retries_left
 
       def call
         self.run_count += 1
 
         SdNotify.watchdog
+
+        if gc_compact > 0 && run_count % gc_compact == 0
+          response = GC.compact
+          logger&.info(:gc_compact, compact: response)
+        end
+
+        if gc_stat > 0 && run_count % gc_stat == 0
+          response = GC.stat
+          logger&.info(:gc_stat, stat: response)
+        end
 
         # If we got here then our retry process has succeeded.
         self.retries_left = retry_count

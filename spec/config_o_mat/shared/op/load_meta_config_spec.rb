@@ -151,6 +151,8 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
                 retry_wait: 12,
                 region: 'us-east-1',
                 facter: 'source4',
+                gc_stat: 30,
+                gc_compact: 90,
                 services: {
                   test0: {
                     systemd_unit: 'test0',
@@ -277,7 +279,9 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
         region: nil,
         profile_defs: match(hash_including(
           facter: ConfigOMat::FacterProfile.new
-        ))
+        )),
+        gc_compact: 0,
+        gc_stat: 0
       )
     end
 

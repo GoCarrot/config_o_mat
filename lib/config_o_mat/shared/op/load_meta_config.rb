@@ -63,7 +63,7 @@ module ConfigOMat
       reads :configuration_directory, :logs_directory, :env
       writes :profile_defs, :template_defs, :service_defs, :dependencies,
              :refresh_interval, :client_id, :logger, :retry_count, :retries_left,
-             :retry_wait, :region, :systemd_interface
+             :retry_wait, :region, :systemd_interface, :gc_stat, :gc_compact
 
       def call
         default_config = {
@@ -74,7 +74,9 @@ module ConfigOMat
           services: [],
           templates: [],
           profiles: [],
-          region: nil
+          region: nil,
+          gc_compact: 0,
+          gc_stat: 0
         }
 
         # TODO: I would like to make this configurable. I think the trick
@@ -174,6 +176,8 @@ module ConfigOMat
         self.retries_left = retry_count
         self.retry_wait = merged_config[:retry_wait]
         self.region = merged_config[:region]
+        self.gc_stat = merged_config[:gc_stat]
+        self.gc_compact = merged_config[:gc_compact]
 
         self.dependencies = service_defs.each_with_object({}) do |(name, service), template_to_services|
           service.templates.each do |template|
