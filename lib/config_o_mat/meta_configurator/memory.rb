@@ -23,7 +23,7 @@ module ConfigOMat
                     :systemd_directory, :logs_directory, :profile_defs,
                     :template_defs, :service_defs, :dependencies, :refresh_interval,
                     :client_id, :retry_count, :retries_left, :retry_wait,
-                    :region, :systemd_interface
+                    :region, :systemd_interface, :gc_stat, :gc_compact
 
       def initialize(
         argv: [],
@@ -44,7 +44,9 @@ module ConfigOMat
         retries_left: 3,
         retry_wait: 2,
         region: nil,
-        systemd_interface: nil
+        systemd_interface: nil,
+        gc_stat: 0,
+        gc_copmact: 0
       )
         super()
 
@@ -67,6 +69,8 @@ module ConfigOMat
         @retry_wait = retry_wait
         @region = region
         @systemd_interface = systemd_interface
+        @gc_stat = gc_stat
+        @gc_compact = gc_compact
       end
     end
   end
