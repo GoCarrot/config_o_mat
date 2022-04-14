@@ -44,8 +44,10 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
 
   subject(:result) { @result }
 
+  let(:memory_class) { ConfigOMat::Configurator::Memory }
+
   let(:state) do
-    ConfigOMat::Configurator::Memory.new(
+    memory_class.new(
       configuration_directory: expanded_conf_dir,
       logs_directory: logs_directory,
       logger: logger
@@ -60,8 +62,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
 
   let(:logger) { LogsForMyFamily::Logger.new }
 
-  context 'with the happy path' do
-    let(:logger) { nil }
+  shared_examples_for 'the happy path' do
     let(:configuration_directory) { 'happy_path' }
 
     it 'loads configuration' do
@@ -202,6 +203,18 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
           )
         )
       end
+    end
+  end
+
+  context 'with the happy path' do
+    let(:logger) { nil }
+
+    include_examples 'the happy path'
+
+    context 'with metaconfig' do
+      let(:memory_class) { ConfigOMat::MetaConfigurator::Memory }
+
+      include_examples 'the happy path'
     end
   end
 
