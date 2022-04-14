@@ -1,3 +1,9 @@
+## 0.4.4
+
+BUG FIXES:
+
+* Fix MetaConfigurator with new GC parameters.
+
 ## 0.4.3
 
 BUG FIXES:
