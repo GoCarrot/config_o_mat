@@ -26,7 +26,7 @@ module ConfigOMat
                     :generated_templates, :services_to_reload, :profiles_to_apply,
                     :last_refresh_time, :next_state, :retry_count, :retries_left, :retry_wait,
                     :region, :appconfig_client, :secretsmanager_client, :systemd_interface,
-                    :secrets_loader_memory
+                    :secrets_loader_memory, :gc_compact, :gc_stat
 
       def initialize(
         argv: [],
@@ -58,7 +58,9 @@ module ConfigOMat
         appconfig_client: nil,
         secretsmanager_client: nil,
         systemd_interface: nil,
-        secrets_loader_memory: nil
+        secrets_loader_memory: nil,
+        gc_compact: 0,
+        gc_stat: 0
       )
         super()
 
@@ -92,6 +94,8 @@ module ConfigOMat
         @secretsmanager_client = secretsmanager_client
         @systemd_interface = systemd_interface
         @secrets_loader_memory = secrets_loader_memory
+        @gc_compact = gc_compact
+        @gc_stat = gc_stat
       end
     end
   end
