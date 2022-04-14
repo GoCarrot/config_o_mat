@@ -1,3 +1,14 @@
+## 0.4.2
+
+NEW FEATURES:
+
+* gc_compact configuration variable. If set, will run `GC.compact` every given number of ticks (roughly seconds).
+* gc_stat configuration variable. If set, will log `GC.stat` at the info level every given number of ticks (roughly seconds).
+
+ENHANCEMENTS:
+
+* Now remove ec2_metadata.iam key from Facter. This value updated every hour or so causing spurious template regeneration and did not contain actionable information.
+
 ## 0.4.1
 
 ENHANCEMENTS:
