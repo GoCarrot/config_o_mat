@@ -27,6 +27,8 @@ RSpec.describe ConfigOMat::Op::NextTick do
     @notifier = class_double('SdNotify').as_stubbed_const(transfer_nested_constants: true)
     allow(@notifier).to receive(:watchdog)
     allow(Kernel).to receive(:sleep) { |time| time.to_i }
+    allow(GC).to receive(:compact).and_return({did: :thing})
+    allow(GC).to receive(:stat).and_return({some: :stats})
     @result = perform
   end
 
@@ -38,7 +40,10 @@ RSpec.describe ConfigOMat::Op::NextTick do
       refresh_interval: refresh_interval,
       run_count: run_count,
       retry_count: retry_count,
-      retries_left: retries_left
+      retries_left: retries_left,
+      gc_stat: gc_stat,
+      gc_compact: gc_compact,
+      logger: logger
     )
   end
 
@@ -47,6 +52,9 @@ RSpec.describe ConfigOMat::Op::NextTick do
   let(:run_count) { rand(1_000_000) }
   let(:retry_count) { 42 }
   let(:retries_left) { 5 }
+  let(:gc_stat) { 0 }
+  let(:gc_compact) { 0 }
+  let(:logger) { nil }
 
   context "when we aren't due to refresh profiles" do
     it 'sleeps' do
@@ -83,6 +91,62 @@ RSpec.describe ConfigOMat::Op::NextTick do
 
     it 'notifies the systemd watchdog timer' do
       expect(@notifier).to have_received(:watchdog)
+    end
+  end
+
+  context 'when gc_stat is >= 0' do
+    let(:gc_stat) { 60 }
+
+    context 'when it has not been gc_compact ticks' do
+      let(:run_count) { gc_stat }
+
+      it 'does not run compaction' do
+        expect(GC).not_to have_received(:stat)
+      end
+    end
+
+    context 'when it has been gc_stat ticks' do
+      let(:run_count) { gc_stat - 1 }
+
+      it 'runs compaction' do
+        expect(GC).to have_received(:stat)
+      end
+
+      context 'with a logger', logger: true do
+        it 'logs gc compact' do
+          expect(@messages).to include(
+            contain_exactly(:info, :gc_stat, a_hash_including(stat: {some: :stats}))
+          )
+        end
+      end
+    end
+  end
+
+  context 'when gc_compact is >= 0' do
+    let(:gc_compact) { 60 }
+
+    context 'when it has not been gc_compact ticks' do
+      let(:run_count) { gc_compact }
+
+      it 'does not run compaction' do
+        expect(GC).not_to have_received(:compact)
+      end
+    end
+
+    context 'when it has been gc_compact ticks' do
+      let(:run_count) { gc_compact - 1 }
+
+      it 'runs compaction' do
+        expect(GC).to have_received(:compact)
+      end
+
+      context 'with a logger', logger: true do
+        it 'logs gc compact' do
+          expect(@messages).to include(
+            contain_exactly(:info, :gc_compact, a_hash_including(compact: {did: :thing}))
+          )
+        end
+      end
     end
   end
 end
