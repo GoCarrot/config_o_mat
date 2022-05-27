@@ -300,6 +300,7 @@ module ConfigOMat
       @version = version
       @secret_defs = {}
       @fallback = fallback
+      @chaos_config = false
 
       parser = PARSERS[content_type]
 
@@ -308,6 +309,7 @@ module ConfigOMat
           @contents = parser.call(contents)
           if @contents.kind_of?(Hash)
             parse_secrets
+            @chaos_config = @contents.fetch(:"aws:chaos_config", false)
             @contents.default_proc = proc do |hash, key|
               raise KeyError.new("No key #{key.inspect} in profile #{name}", key: key, receiver: hash)
             end
@@ -328,7 +330,7 @@ module ConfigOMat
     end
 
     def hash
-      @name.hash ^ @version.hash ^ @contents.hash ^ @fallback.hash
+      @name.hash ^ @version.hash ^ @contents.hash ^ @fallback.hash ^ @chaos_config.hash
     end
 
     def to_h
@@ -339,9 +341,19 @@ module ConfigOMat
       @fallback
     end
 
+    def chaos_config?
+      @chaos_config
+    end
+
     def eql?(other)
       return false if !super(other)
-      return false if other.version != version || other.contents != contents || other.name != name || other.fallback? != fallback?
+      if other.version != version ||
+         other.contents != contents ||
+         other.name != name ||
+         other.fallback? != fallback? ||
+         other.chaos_config? != chaos_config?
+        return false
+      end
       true
     end
 

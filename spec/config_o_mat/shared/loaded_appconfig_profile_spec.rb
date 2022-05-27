@@ -172,6 +172,26 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
     end
   end
 
+  shared_examples_for 'aws:chaos_config' do
+    context 'with aws:chaos_config' do
+      let(:content_hash) do
+        {
+          answer: 42,
+          :"aws:chaos_config" => true
+        }
+      end
+
+      it 'requests chaos_config' do
+        expect(profile).to have_attributes(
+          name: name, version: version,
+          contents: described_class::PARSERS[content_type].call(contents),
+          errors?: false,
+          chaos_config?: true
+        )
+      end
+    end
+  end
+
   context 'with json' do
     it 'parses the json' do
       expect(profile).to have_attributes(
@@ -183,6 +203,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
 
     include_examples 'invalid key'
     include_examples 'aws:secrets'
+    include_examples 'aws:chaos_config'
   end
 
   context 'with invalid json' do
@@ -209,6 +230,7 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
 
     include_examples 'invalid key'
     include_examples 'aws:secrets'
+    include_examples 'aws:chaos_config'
   end
 
   context 'with invalid yaml' do
