@@ -317,7 +317,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
     it 'uses the s3 fallback data' do
       expect(state.profiles_to_apply).to contain_exactly(
         ConfigOMat::LoadedProfile.new(
-          ConfigOMat::LoadedAppconfigProfile.new(:source1, s3_version_id, { answer: 512 }.to_json, 'application/json'),
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, s3_version_id, { answer: 512 }.to_json, 'application/json', true),
           nil
         ),
         ConfigOMat::LoadedProfile.new(

@@ -269,7 +269,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       subject
       expect(state.applying_profile).to eq(
         ConfigOMat::LoadedProfile.new(
-          ConfigOMat::LoadedAppconfigProfile.new(:source0, s3_version_id, { answer: 512 }.to_json, 'application/json'),
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, s3_version_id, { answer: 512 }.to_json, 'application/json', true),
           nil
         )
       )

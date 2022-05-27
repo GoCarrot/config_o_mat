@@ -79,12 +79,14 @@ module ConfigOMat
           configuration: definition.profile, client_id: client_id,
           client_configuration_version: profile_version
         }
+        fallback = false
 
         response =
           begin
             appconfig_client.get_configuration(request)
           rescue StandardError => e
             if definition.s3_fallback
+              fallback = true
               logger&.error(:s3_fallback_request, name: profile_name, reason: e)
               request_from_s3(profile_name, definition)
             else
@@ -110,7 +112,7 @@ module ConfigOMat
         )
 
         profile = LoadedAppconfigProfile.new(
-          profile_name, loaded_version, response.content.read, response.content_type
+          profile_name, loaded_version, response.content.read, response.content_type, fallback
         )
 
         loaded_secrets = nil
