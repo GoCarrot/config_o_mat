@@ -223,6 +223,10 @@ module ConfigOMat
       @version = contents.hash
     end
 
+    def fallback?
+      false
+    end
+
     def validate
       error :name, 'must be present' if @name.nil? || @name.empty?
       error :contents, 'must be present' if @contents.nil? || @contents.empty?
@@ -447,7 +451,7 @@ module ConfigOMat
 
     attr_reader :secrets, :loaded_profile_data
 
-    def_delegators :@loaded_profile_data, :name, :version, :contents
+    def_delegators :@loaded_profile_data, :name, :version, :contents, :fallback?
 
     def initialize(loaded_profile_data, secrets)
       @loaded_profile_data = loaded_profile_data
