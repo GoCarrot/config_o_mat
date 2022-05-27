@@ -245,6 +245,22 @@ RSpec.describe ConfigOMat::LoadedAppconfigProfile do
     end
   end
 
+  describe '#fallback?' do
+    it 'is false by default' do
+      expect(profile.fallback?).to be false
+    end
+
+    context 'when it is a fallback profile' do
+      subject(:profile) do
+        described_class.new(name, version, contents, content_type, true)
+      end
+
+      it 'is true' do
+        expect(profile.fallback?).to be true
+      end
+    end
+  end
+
   describe '#validate' do
     before { profile.validate }
 

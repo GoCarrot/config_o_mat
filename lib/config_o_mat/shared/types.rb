@@ -291,10 +291,11 @@ module ConfigOMat
       'application/x-yaml' => proc { |str| YAML.safe_load(str, symbolize_names: true) }
     }.freeze
 
-    def initialize(name, version, contents, content_type)
+    def initialize(name, version, contents, content_type, fallback = false)
       @name = name
       @version = version
       @secret_defs = {}
+      @fallback = fallback
 
       parser = PARSERS[content_type]
 
@@ -323,16 +324,20 @@ module ConfigOMat
     end
 
     def hash
-      @name.hash ^ @version.hash ^ @contents.hash
+      @name.hash ^ @version.hash ^ @contents.hash ^ @fallback.hash
     end
 
     def to_h
       @contents
     end
 
+    def fallback?
+      @fallback
+    end
+
     def eql?(other)
       return false if !super(other)
-      return false if other.version != version || other.contents != contents || other.name != name
+      return false if other.version != version || other.contents != contents || other.name != name || other.fallback? != fallback?
       true
     end
 
