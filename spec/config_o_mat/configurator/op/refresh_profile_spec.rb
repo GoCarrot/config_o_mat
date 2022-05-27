@@ -20,6 +20,7 @@ require 'config_o_mat/configurator/memory'
 require 'config_o_mat/shared/types'
 
 require 'aws-sdk-appconfig'
+require 'aws-sdk-s3'
 require 'logsformyfamily'
 
 RSpec.describe ConfigOMat::Op::RefreshProfile do
@@ -36,6 +37,7 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       applying_profile: applying_profile,
       appconfig_client: client_stub,
       secretsmanager_client: sm_client_stub,
+      s3_client: s3_client_stub,
       logger: logger
     )
   end
@@ -76,6 +78,16 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
     Aws::SecretsManager::Client.new(stub_responses: true).tap do |client|
       client.stub_responses(:get_secret_value, proc do |request|
         secretsmanager_stubs[request.params[:secret_id]]
+      end)
+    end
+  end
+
+  let(:s3_stubs) { {} }
+
+  let(:s3_client_stub) do
+    Aws::S3::Client.new(stub_responses: true).tap do |client|
+      client.stub_responses(:get_object, proc do |request|
+        s3_stubs[request.params[:key]]
       end)
     end
   end
@@ -222,6 +234,68 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
       expect(result.errors).to  match(
         source0: [an_instance_of(Aws::AppConfig::Errors::BadRequestException)]
       )
+    end
+  end
+
+  context 'when a profile with an s3 fallback errors' do
+    let(:profile_defs) do
+      {
+        source0: ConfigOMat::Profile.new(
+          application: 'test', environment: 'test', profile: 'test',
+          s3_fallback: { bucket: 'zebucket', object: 'test_fallback' }
+        )
+      }
+    end
+
+    let(:stub_responses) do
+      {
+        'test' => 'BadRequestException',
+      }
+    end
+
+    let(:s3_version_id) { SecureRandom.hex }
+
+    let(:s3_stubs) do
+      {
+        'test_fallback' => {
+          body: StringIO.new({ answer: 512 }.to_json),
+          version_id: s3_version_id,
+          content_type: 'application/json'
+        }
+      }
+    end
+
+    it 'uses the s3 fallback data' do
+      subject
+      expect(state.applying_profile).to eq(
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, s3_version_id, { answer: 512 }.to_json, 'application/json'),
+          nil
+        )
+      )
+    end
+
+    context 'with a logger', logger: true do
+      it 'logs an error indicating fallback was used' do
+        subject
+        expect(@messages).to include(
+          contain_exactly(:error, :s3_fallback_request, a_hash_including(name: :source0, reason: an_instance_of(Aws::AppConfig::Errors::BadRequestException)))
+        )
+      end
+    end
+
+    context 'when the s3 fallback errors' do
+      let(:s3_stubs) do
+        {
+          'test_fallback' => 'BadRequestException'
+        }
+      end
+
+      it 'errors' do
+        expect(result.errors).to match(
+          source0: [an_instance_of(Aws::S3::Errors::BadRequestException)]
+        )
+      end
     end
   end
 

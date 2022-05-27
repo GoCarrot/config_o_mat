@@ -19,7 +19,8 @@ require 'lifecycle_vm/op_base'
 module ConfigOMat
   module Op
     class RefreshProfile < LifecycleVM::OpBase
-      reads :profile_defs, :client_id, :applying_profile, :appconfig_client, :secretsmanager_client, :secrets_loader_memory
+      reads :profile_defs, :client_id, :applying_profile, :appconfig_client, :secretsmanager_client,
+            :secrets_loader_memory, :s3_client
       writes :applying_profile, :secrets_loader_memory
 
       def call
@@ -54,6 +55,21 @@ module ConfigOMat
         self.applying_profile = LoadedProfile.new(new_profile, nil)
       end
 
+      def request_from_s3(profile_name, definition)
+        fallback = definition.s3_fallback
+        begin
+          s3_response = s3_client.get_object(bucket: fallback[:bucket], key: fallback[:object])
+          OpenStruct.new(
+            content: s3_response.body,
+            content_type: s3_response.content_type,
+            configuration_version: s3_response.version_id
+          )
+        rescue StandardError => e
+          error profile_name, e
+          nil
+        end
+      end
+
       def refresh_appconfig_profile
         profile_name = applying_profile.name
         profile_version = applying_profile.version
@@ -68,8 +84,13 @@ module ConfigOMat
           begin
             appconfig_client.get_configuration(request)
           rescue StandardError => e
-            error profile_name, e
-            nil
+            if definition.s3_fallback
+              logger&.error(:s3_fallback_request, name: profile_name, reason: e)
+              request_from_s3(profile_name, definition)
+            else
+              error profile_name, e
+              nil
+            end
           end
 
         return if response.nil? || errors?
