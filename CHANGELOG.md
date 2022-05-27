@@ -1,8 +1,8 @@
-## 0.5.0.beta0
+## 0.5.0.beta1
 
 NEW FEATURES:
 
-* Profiles can now specify an s3_fallback hash with bucket: and object:. If AWS AppConfig is unreachable, we will fall back to loading the specified S3 object and interpreting it as a response from AWS AppConfig. For best results enable versioning on the bucket.
+* Profiles can now specify an s3_fallback key. If AWS AppConfig is unreachable, we will fall back to loading the specified S3 object from the top level configured fallback_s3_bucket and interpreting it as a response from AWS AppConfig. For best results enable versioning on the bucket. It is an error to specify an s3_fallback key if the configuration does not have a top level fallback_s3_bucket.
 * AppConfig responses can request that the s3_fallback be used by setting a top level "aws:chaos_config" key to true. This allows for deployments which AppConfig deployments which can test the fallback mechanism. If a chaos config load fails, the source AppConfig profile will remain in use. Chaos config is ignored in error recovery scenarios.
 
 BUG FIXES:
