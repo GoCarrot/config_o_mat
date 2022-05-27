@@ -36,12 +36,12 @@ vm = ConfigOMat::Configurator::VM.new(memory)
 vm.call
 
 if vm.errors?
-  warn "Errored executing #{vm.error_op.class.name}"
+  warn "Errored executing #{vm.error_op.op.name}"
   warn "Errors: #{vm.errors}"
 
   if vm.recovery_errors?
     warn ''
-    warn "Errors recovering from error. Errored executing recovery #{vm.current_op.class.name}"
+    warn "Errors recovering from error. Errored executing recovery #{vm.current_op.op.name}"
     warn "Errors: #{vm.recovery_errors}"
   end
 
