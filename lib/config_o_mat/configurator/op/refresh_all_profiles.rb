@@ -21,7 +21,8 @@ require 'config_o_mat/secrets_loader'
 module ConfigOMat
   module Op
     class RefreshAllProfiles < LifecycleVM::OpBase
-      reads :profile_defs, :applied_profiles, :client_id, :appconfig_client, :secrets_loader_memory, :secretsmanager_client
+      reads :profile_defs, :applied_profiles, :client_id, :appconfig_client, :secrets_loader_memory,
+            :secretsmanager_client, :s3_client
       writes :profiles_to_apply, :last_refresh_time, :secrets_loader_memory
 
       def call
@@ -55,6 +56,21 @@ module ConfigOMat
         profiles_to_apply << LoadedProfile.new(new_profile, nil)
       end
 
+      def request_from_s3(profile_name, definition)
+        fallback = definition.s3_fallback
+        begin
+          s3_response = s3_client.get_object(bucket: fallback[:bucket], key: fallback[:object])
+          OpenStruct.new(
+            content: s3_response.body,
+            content_type: s3_response.content_type,
+            configuration_version: s3_response.version_id
+          )
+        rescue StandardError => e
+          error profile_name, e
+          nil
+        end
+      end
+
       def refresh_appconfig_profile(profile_name, definition)
         request = {
           application: definition.application, environment: definition.environment,
@@ -68,8 +84,13 @@ module ConfigOMat
           begin
             appconfig_client.get_configuration(request)
           rescue StandardError => e
-            error profile_name, e
-            nil
+            if definition.s3_fallback
+              logger&.error(:s3_fallback_request, name: profile_name, reason: e)
+              request_from_s3(profile_name, definition)
+            else
+              error profile_name, e
+              nil
+            end
           end
 
         return if response.nil?
