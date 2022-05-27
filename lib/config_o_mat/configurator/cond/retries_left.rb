@@ -22,13 +22,19 @@ module ConfigOMat
       reads :error_op, :retries_left, :applying_profile
 
       def call
-        logger&.error(:op_failure, op: error_op.class.name, errors: error_op.errors)
+        logger&.error(:retry_from_failure, state: error_op.state_name, op: error_op.op.name, errors: error_op.errors)
 
         # If we aren't currently applying a profile then there's nothing for us to retry.
-        return false if applying_profile.nil?
+        if applying_profile.nil?
+          logger&.error(:cannot_retry, reason: 'not applying profile')
+          return false
+        end
 
         # If we're out of retries, well, no more retrying
-        return false if retries_left.zero?
+        if retries_left.zero?
+          logger&.error(:cannot_retry, reason: 'out of retries')
+          return false
+        end
 
         true
       end

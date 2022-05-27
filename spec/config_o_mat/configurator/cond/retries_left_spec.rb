@@ -18,6 +18,7 @@ require 'config_o_mat/configurator/cond/retries_left'
 
 require 'config_o_mat/configurator/memory'
 require 'config_o_mat/shared/types'
+require 'config_o_mat/configurator/op/stage_one_profile'
 
 require 'logsformyfamily'
 
@@ -50,9 +51,11 @@ RSpec.describe ConfigOMat::Cond::RetriesLeft do
   end
   let(:errors) { { source0: ['syntax error'] } }
   let(:error_op) do
-    instance_double("Op::StageOneProfile").tap do |dbl|
+    instance_double(LifecycleVM::VM::OpEntry).tap do |dbl|
       allow(dbl).to receive(:errors?).and_return(true)
       allow(dbl).to receive(:errors).and_return(errors)
+      allow(dbl).to receive(:op).and_return(ConfigOMat::Op::StageOneProfile)
+      allow(dbl).to receive(:state_name).and_return(:test)
     end
   end
 
@@ -68,6 +71,16 @@ RSpec.describe ConfigOMat::Cond::RetriesLeft do
     it 'cannot retry' do
       expect(result).to be false
     end
+
+    context 'with a logger', logger: true do
+      it 'logs that it cannot retry' do
+        expect(@messages).to include(
+          contain_exactly(
+            :error, :cannot_retry, a_hash_including(reason: 'out of retries')
+          )
+        )
+      end
+    end
   end
 
   context 'when no profile is being applied' do
@@ -76,13 +89,23 @@ RSpec.describe ConfigOMat::Cond::RetriesLeft do
     it 'cannot retry' do
       expect(result).to be false
     end
+
+    context 'with a logger', logger: true do
+      it 'logs that it cannot retry' do
+        expect(@messages).to include(
+          contain_exactly(
+            :error, :cannot_retry, a_hash_including(reason: 'not applying profile')
+          )
+        )
+      end
+    end
   end
 
   context 'with a logger', logger: true do
     it 'logs an error' do
       expect(@messages).to include(
         contain_exactly(
-          :error, :op_failure, a_hash_including(errors: errors)
+          :error, :retry_from_failure, a_hash_including(state: :test, op: 'ConfigOMat::Op::StageOneProfile', errors: errors)
         )
       )
     end
