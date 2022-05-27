@@ -164,27 +164,43 @@ module ConfigOMat
   end
 
   class Profile < ConfigItem
-    attr_reader :application, :environment, :profile
+    attr_reader :application, :environment, :profile, :s3_fallback
 
     def initialize(opts)
       @application = opts[:application]
       @environment = opts[:environment]
       @profile = opts[:profile]
+      @s3_fallback = opts[:s3_fallback]
     end
 
     def validate
       error :application, 'must be present' if @application.nil? || @application.empty?
       error :environment, 'must be present' if @environment.nil? || @environment.empty?
       error :profile, 'must be present' if @profile.nil? || @profile.empty?
+      if !@s3_fallback.nil?
+        if !@s3_fallback.kind_of?(Hash)
+          error :s3_fallback, 'must be a hash'
+        else
+          bucket = @s3_fallback[:bucket]
+          object = @s3_fallback[:object]
+          error :s3_fallback, 'must include bucket' if bucket.nil? || bucket.empty?
+          error :s3_fallback, 'must include object' if object.nil? || object.empty?
+        end
+      end
     end
 
     def hash
-      application.hash ^ environment.hash ^ profile.hash
+      application.hash ^ environment.hash ^ profile.hash ^ s3_fallback.hash
     end
 
     def eql?(other)
       return false if !super(other)
-      return false if other.application != application || other.environment != environment || other.profile != profile
+      if other.application != application ||
+         other.environment != environment ||
+         other.profile != profile ||
+         other.s3_fallback != s3_fallback
+        return false
+      end
       true
     end
   end

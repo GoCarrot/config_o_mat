@@ -94,7 +94,10 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
       expect(state).to have_attributes(
         profile_defs: match({
           source0: ConfigOMat::Profile.new(application: 'test', environment: 'test', profile: 'test'),
-          source1: ConfigOMat::Profile.new(application: 'bar', environment: 'test', profile: 'test'),
+          source1: ConfigOMat::Profile.new(
+            application: 'bar', environment: 'test', profile: 'test',
+            s3_fallback: { bucket: 'zebucket', object: 'zeobject' }
+          ),
           source2: ConfigOMat::Profile.new(application: 'baz', environment: 'baz', profile: 'other'),
           source4: ConfigOMat::FacterProfile.new
         }),
@@ -190,7 +193,11 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
                   source1: {
                     application: 'bar',
                     environment: 'test',
-                    profile: 'test'
+                    profile: 'test',
+                    s3_fallback: {
+                      bucket: 'zebucket',
+                      object: 'zeobject'
+                    }
                   },
                   source2: {
                     application: 'baz',

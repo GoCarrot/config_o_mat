@@ -232,6 +232,26 @@ RSpec.describe ConfigOMat::Profile do
       )
     end
   end
+
+  s3fallback_errors = [
+    [ 'no entries', {}, ['must include bucket', 'must include object'] ],
+    [ 'a blank object', { bucket: 'zebucket', object: '' }, ['must include object'] ],
+    [ 'a blank bucket', { bucket: '', object: 'zeobject' }, ['must include bucket'] ],
+    [ 'an invalid type', 's3://bucket/object', ['must be a hash'] ]
+  ].each do |error_test|
+    context "with an s3fallback that has #{error_test[0]}" do
+      let(:opts) do
+        super().merge(s3_fallback: error_test[1])
+      end
+
+      it 'reports errors' do
+        subject.validate
+        expect(subject.errors).to match(
+          s3_fallback: error_test[2]
+        )
+      end
+    end
+  end
 end
 
 RSpec.describe ConfigOMat::LoadedFacterProfile do
