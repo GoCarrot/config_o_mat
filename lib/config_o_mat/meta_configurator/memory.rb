@@ -23,7 +23,8 @@ module ConfigOMat
                     :systemd_directory, :logs_directory, :profile_defs,
                     :template_defs, :service_defs, :dependencies, :refresh_interval,
                     :client_id, :retry_count, :retries_left, :retry_wait,
-                    :region, :systemd_interface, :gc_stat, :gc_compact
+                    :region, :systemd_interface, :gc_stat, :gc_compact,
+                    :fallback_s3_bucket
 
       def initialize(
         argv: [],
@@ -46,7 +47,8 @@ module ConfigOMat
         region: nil,
         systemd_interface: nil,
         gc_stat: 0,
-        gc_copmact: 0
+        gc_copmact: 0,
+        fallback_s3_bucket: nil
       )
         super()
 
@@ -71,6 +73,7 @@ module ConfigOMat
         @systemd_interface = systemd_interface
         @gc_stat = gc_stat
         @gc_compact = gc_compact
+        @fallback_s3_bucket = fallback_s3_bucket
       end
     end
   end

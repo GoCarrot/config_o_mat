@@ -22,7 +22,7 @@ module ConfigOMat
   module Op
     class RefreshAllProfiles < LifecycleVM::OpBase
       reads :profile_defs, :applied_profiles, :client_id, :appconfig_client, :secrets_loader_memory,
-            :secretsmanager_client, :s3_client
+            :secretsmanager_client, :s3_client, :fallback_s3_bucket
       writes :profiles_to_apply, :last_refresh_time, :secrets_loader_memory
 
       def call
@@ -57,9 +57,8 @@ module ConfigOMat
       end
 
       def request_from_s3(profile_name, definition, ignore_errors)
-        fallback = definition.s3_fallback
         begin
-          s3_response = s3_client.get_object(bucket: fallback[:bucket], key: fallback[:object])
+          s3_response = s3_client.get_object(bucket: fallback_s3_bucket, key: definition.s3_fallback)
           OpenStruct.new(
             content: s3_response.body,
             content_type: s3_response.content_type,

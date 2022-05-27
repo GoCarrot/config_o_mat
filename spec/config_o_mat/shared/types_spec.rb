@@ -234,10 +234,8 @@ RSpec.describe ConfigOMat::Profile do
   end
 
   s3fallback_errors = [
-    [ 'no entries', {}, ['must include bucket', 'must include object'] ],
-    [ 'a blank object', { bucket: 'zebucket', object: '' }, ['must include object'] ],
-    [ 'a blank bucket', { bucket: '', object: 'zeobject' }, ['must include bucket'] ],
-    [ 'an invalid type', 's3://bucket/object', ['must be a hash'] ]
+    [ 'not a string', {}, ['must be a string'] ],
+    [ 'not present', '', ['must be non-empty'] ]
   ].each do |error_test|
     context "with an s3fallback that has #{error_test[0]}" do
       let(:opts) do

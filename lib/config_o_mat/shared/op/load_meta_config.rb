@@ -63,7 +63,8 @@ module ConfigOMat
       reads :configuration_directory, :logs_directory, :env
       writes :profile_defs, :template_defs, :service_defs, :dependencies,
              :refresh_interval, :client_id, :logger, :retry_count, :retries_left,
-             :retry_wait, :region, :systemd_interface, :gc_stat, :gc_compact
+             :retry_wait, :region, :systemd_interface, :gc_stat, :gc_compact,
+             :fallback_s3_bucket
 
       def call
         default_config = {
@@ -127,6 +128,11 @@ module ConfigOMat
         self.service_defs = instantiate.call(:services, Service)
         self.template_defs = instantiate.call(:templates, Template)
         self.profile_defs = instantiate.call(:profiles, Profile)
+        self.fallback_s3_bucket = merged_config[:fallback_s3_bucket]
+
+        if profile_defs.values.any? { |pd| pd.s3_fallback } && (fallback_s3_bucket.nil? || fallback_s3_bucket.empty?)
+          error :fallback_s3_bucket, 'must be present to use s3_fallback on profiles'
+        end
 
         facter = merged_config[:facter]
         if facter

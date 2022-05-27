@@ -178,13 +178,10 @@ module ConfigOMat
       error :environment, 'must be present' if @environment.nil? || @environment.empty?
       error :profile, 'must be present' if @profile.nil? || @profile.empty?
       if !@s3_fallback.nil?
-        if !@s3_fallback.kind_of?(Hash)
-          error :s3_fallback, 'must be a hash'
+        if @s3_fallback.kind_of?(String)
+          error :s3_fallback, 'must be non-empty' if @s3_fallback.empty?
         else
-          bucket = @s3_fallback[:bucket]
-          object = @s3_fallback[:object]
-          error :s3_fallback, 'must include bucket' if bucket.nil? || bucket.empty?
-          error :s3_fallback, 'must include object' if object.nil? || object.empty?
+          error :s3_fallback, 'must be a string'
         end
       end
     end

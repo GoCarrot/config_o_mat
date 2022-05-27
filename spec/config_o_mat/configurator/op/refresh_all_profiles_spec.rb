@@ -43,7 +43,8 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
       appconfig_client: client_stub,
       secretsmanager_client: sm_client_stub,
       s3_client: s3_client_stub,
-      logger: logger
+      logger: logger,
+      fallback_s3_bucket: 'zebucket'
     )
   end
 
@@ -52,7 +53,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
       source0: ConfigOMat::Profile.new(application: 'test', environment: 'test', profile: 'test'),
       source1: ConfigOMat::Profile.new(
         application: 'foo', environment: 'bar', profile: 'boo',
-        s3_fallback: { bucket: 'zebucket', object: 'foo_fallback' }
+        s3_fallback: 'foo_fallback'
       ),
       source2: ConfigOMat::Profile.new(application: 'other', environment: 'test', profile: 'test'),
       source3: ConfigOMat::FacterProfile.new

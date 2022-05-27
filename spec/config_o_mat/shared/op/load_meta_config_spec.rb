@@ -96,7 +96,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
           source0: ConfigOMat::Profile.new(application: 'test', environment: 'test', profile: 'test'),
           source1: ConfigOMat::Profile.new(
             application: 'bar', environment: 'test', profile: 'test',
-            s3_fallback: { bucket: 'zebucket', object: 'zeobject' }
+            s3_fallback: 'zeobject'
           ),
           source2: ConfigOMat::Profile.new(application: 'baz', environment: 'baz', profile: 'other'),
           source4: ConfigOMat::FacterProfile.new
@@ -114,6 +114,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
           level: :debug,
           backends: contain_exactly(@stdout_logger_proc)
         )),
+        fallback_s3_bucket: 'zebucket',
         retry_count: 6,
         retries_left: 6,
         retry_wait: 12,
@@ -149,6 +150,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
                 facter: 'source4',
                 gc_stat: 30,
                 gc_compact: 90,
+                fallback_s3_bucket: 'zebucket',
                 services: {
                   test0: {
                     systemd_unit: 'test0',
@@ -194,10 +196,7 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
                     application: 'bar',
                     environment: 'test',
                     profile: 'test',
-                    s3_fallback: {
-                      bucket: 'zebucket',
-                      object: 'zeobject'
-                    }
+                    s3_fallback: 'zeobject'
                   },
                   source2: {
                     application: 'baz',
@@ -371,6 +370,16 @@ RSpec.describe ConfigOMat::Op::LoadMetaConfig do
     it 'errors on facter' do
       expect(result.errors).to match(
         facter: [include('conflicts with profile')]
+      )
+    end
+  end
+
+  context 'when an s3 fallback is requested and no bucket is provided' do
+    let(:configuration_directory) { 'missing_fallback_s3_bucket' }
+
+    it 'errors on fallback_s3_bucket' do
+      expect(result.errors).to match(
+        fallback_s3_bucket: [include('must be present')]
       )
     end
   end
