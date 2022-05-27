@@ -293,15 +293,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
     end
   end
 
-  context 'when a profile with an s3 fallback errors' do
-    let(:stub_responses) do
-      {
-        'test' => { content: StringIO.new, configuration_version: '1', content_type: 'application/json' },
-        'foo' => 'BadRequestException',
-        'other' => { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
-      }
-    end
-
+  shared_examples_for 's3 fallback' do
     let(:s3_version_id) { SecureRandom.hex }
 
     let(:s3_stubs) do
@@ -326,6 +318,18 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
         )
       )
     end
+  end
+
+  context 'when a profile with an s3 fallback errors' do
+    let(:stub_responses) do
+      {
+        'test' => { content: StringIO.new, configuration_version: '1', content_type: 'application/json' },
+        'foo' => 'BadRequestException',
+        'other' => { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
+      }
+    end
+
+    include_examples 's3 fallback'
 
     context 'with a logger', logger: true do
       it 'logs an error indicating fallback was used' do
@@ -345,6 +349,138 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
       it 'errors' do
         expect(result.errors).to match(
           source1: [an_instance_of(Aws::S3::Errors::BadRequestException)]
+        )
+      end
+    end
+  end
+
+  context 'when a profile with an s3 fallback requests a chaos_config' do
+    let(:stub_responses) do
+      {
+        'test' => { content: StringIO.new, configuration_version: '1', content_type: 'application/json' },
+        'foo' => { content: StringIO.new({ answer: 181, :"aws:chaos_config" => true }.to_json), configuration_version: '2', content_type: 'application/json' },
+        'other' => { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
+      }
+    end
+
+    include_examples 's3 fallback'
+
+    context 'with a logger', logger: true do
+      it 'logs that a chaos config was requested' do
+        expect(@messages).to include(
+          contain_exactly(:notice, :chaos_config_requested, a_hash_including(name: :source1))
+        )
+      end
+
+      it 'logs that a chaos config was loaded' do
+        expect(@messages).to include(
+          contain_exactly(:notice, :chaos_config_profile_loaded, a_hash_including(name: :source1, new_version: s3_version_id))
+        )
+      end
+    end
+
+    context 'when the s3 fallback also requests a chaos config' do
+      let(:stub_responses) do
+        {
+          'test' => { content: StringIO.new, configuration_version: '1', content_type: 'application/json' },
+          'foo' => { content: StringIO.new({ answer: 181, :"aws:chaos_config" => true }.to_json), configuration_version: '2', content_type: 'application/json' },
+          'other' => { content: StringIO.new({ answer: 255 }.to_json), configuration_version: '1', content_type: 'application/json' }
+        }
+      end
+
+      let(:s3_stubs) do
+        {
+          'foo_fallback' => {
+            body: StringIO.new({ answer: 512, :"aws:chaos_config" => true }.to_json),
+            version_id: s3_version_id,
+            content_type: 'application/json'
+          }
+        }
+
+        # This is sufficient to verify we don't infinite loop.
+        it 'uses the s3 fallback data' do
+          expect(state.profiles_to_apply).to contain_exactly(
+            ConfigOMat::LoadedProfile.new(
+              ConfigOMat::LoadedAppconfigProfile.new(:source1, s3_version_id, { answer: 512, :"aws:chaos_config" => true }.to_json, 'application/json', true),
+              nil
+            ),
+            ConfigOMat::LoadedProfile.new(
+              ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json'),
+              nil
+            )
+          )
+        end
+      end
+    end
+
+    context 'when th e s3 fallback fails' do
+      let(:s3_stubs) do
+        { 'foo_fallback' => 'BadRequestException' }
+      end
+
+      it 'uses the original profile data' do
+        expect(state.profiles_to_apply).to contain_exactly(
+          ConfigOMat::LoadedProfile.new(
+            ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181, :"aws:chaos_config" => true }.to_json, 'application/json'),
+            nil
+          ),
+          ConfigOMat::LoadedProfile.new(
+            ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255 }.to_json, 'application/json'),
+            nil
+          )
+        )
+      end
+
+      context 'with a logger', logger: true do
+        it 'logs the s3 error' do
+          expect(@messages).to include(
+            contain_exactly(:error, :s3_fallback_load_failed, a_hash_including(name: :source1, reason: an_instance_of(Aws::S3::Errors::BadRequestException)))
+          )
+        end
+
+        it 'logs that the load failed' do
+          expect(
+            expect(@messages).to include(
+              contain_exactly(:error, :chaos_config_load_failed, a_hash_including(name: :source1))
+            )
+          )
+        end
+      end
+    end
+  end
+
+  context 'when a profile without an s3 fallback requests a chaos config' do
+    let(:stub_responses) do
+      {
+        'test' => { content: StringIO.new, configuration_version: '1', content_type: 'application/json' },
+        'foo' => { content: StringIO.new({ answer: 181 }.to_json), configuration_version: '2', content_type: 'application/json' },
+        'other' => { content: StringIO.new({ answer: 255, :"aws:chaos_config" => true }.to_json), configuration_version: '1', content_type: 'application/json' }
+      }
+    end
+
+    it 'uses the original profile data' do
+      expect(state.profiles_to_apply).to contain_exactly(
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+          nil
+        ),
+        ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source2, '1', { answer: 255, :"aws:chaos_config" => true }.to_json, 'application/json'),
+          nil
+        )
+      )
+    end
+
+    context 'with a logger', logger: true do
+      it 'logs that a chaos config was requested' do
+        expect(@messages).to include(
+          contain_exactly(:notice, :chaos_config_requested, a_hash_including(name: :source2))
+        )
+      end
+
+      it 'logs that a choas config load was refused' do
+        expect(@messages).to include(
+          contain_exactly(:error, :refusing_chaos_config, a_hash_including(name: :source2, reason: 'no s3 fallback provided'))
         )
       end
     end

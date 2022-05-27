@@ -56,7 +56,7 @@ module ConfigOMat
         profiles_to_apply << LoadedProfile.new(new_profile, nil)
       end
 
-      def request_from_s3(profile_name, definition)
+      def request_from_s3(profile_name, definition, ignore_errors)
         fallback = definition.s3_fallback
         begin
           s3_response = s3_client.get_object(bucket: fallback[:bucket], key: fallback[:object])
@@ -66,7 +66,8 @@ module ConfigOMat
             configuration_version: s3_response.version_id
           )
         rescue StandardError => e
-          error profile_name, e
+          logger&.error(:s3_fallback_load_failed, name: profile_name, reason: e)
+          error profile_name, e unless ignore_errors
           nil
         end
       end
@@ -88,7 +89,7 @@ module ConfigOMat
             if definition.s3_fallback
               fallback = true
               logger&.error(:s3_fallback_request, name: profile_name, reason: e)
-              request_from_s3(profile_name, definition)
+              request_from_s3(profile_name, definition, false)
             else
               error profile_name, e
               nil
@@ -108,6 +109,24 @@ module ConfigOMat
         profile = LoadedAppconfigProfile.new(
           profile_name, loaded_version, response.content.read, response.content_type, fallback
         )
+
+        if profile.chaos_config? && !fallback
+          logger&.notice(:chaos_config_requested, name: profile_name)
+          if !definition.s3_fallback
+            logger&.error(:refusing_chaos_config, name: profile_name, reason: 'no s3 fallback provided')
+          else
+            response = request_from_s3(profile_name, definition, true)
+            if !response
+              logger&.error(:chaos_config_load_failed, name: profile_name)
+            else
+              loaded_version = response.configuration_version
+              logger&.notice(:chaos_config_profile_loaded, name: profile_name, new_version: loaded_version)
+              profile = LoadedAppconfigProfile.new(
+                profile_name, loaded_version, response.content.read, response.content_type, true
+              )
+            end
+          end
+        end
 
         loaded_secrets = nil
 
