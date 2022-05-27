@@ -62,7 +62,7 @@ module ConfigOMat
           OpenStruct.new(
             content: s3_response.body,
             content_type: s3_response.content_type,
-            configuration_version: s3_response.version_id
+            configuration_version: s3_response.version_id || s3_response.etag
           )
         rescue StandardError => e
           logger&.error(:s3_fallback_load_failed, name: profile_name, reason: e)
