@@ -1,4 +1,4 @@
-## 0.5.0.beta1
+## 0.5.0
 
 NEW FEATURES:
 

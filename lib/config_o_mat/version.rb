@@ -15,5 +15,5 @@
 # limitations under the License.
 
 module ConfigOMat
-  VERSION = "0.5.0.beta1"
+  VERSION = "0.5.0"
 end
