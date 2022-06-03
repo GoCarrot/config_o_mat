@@ -21,6 +21,8 @@ require 'yaml'
 require 'digest'
 
 module ConfigOMat
+  PRESENCE_ERROR_MSG = 'must be present'
+
   class LogWriter
     def call(level_name, event_type, merged_data)
       merged_data[:level] = level_name
@@ -108,11 +110,11 @@ module ConfigOMat
     end
 
     def validate
-      error :templates, 'must be present' if @templates.nil? || @templates.empty?
+      error :templates, PRESENCE_ERROR_MSG if @templates.nil? || @templates.empty?
       unless @templates.is_a?(Array) && @templates.all? { |v| v.is_a?(String) }
         error :templates, 'must be an array of strings'
       end
-      error :systemd_unit, 'must be present' if @systemd_unit.nil? || @systemd_unit.empty? || @systemd_unit == '@'
+      error :systemd_unit, PRESENCE_ERROR_MSG if @systemd_unit.nil? || @systemd_unit.empty? || @systemd_unit == '@'
       error :restart_mode, "must be one of #{RESTART_MODES}" unless RESTART_MODES.include?(@restart_mode)
 
       if @restart_mode == :flip_flop && !@systemd_unit.end_with?('@')
@@ -148,8 +150,8 @@ module ConfigOMat
     end
 
     def validate
-      error :src, 'must be present' if @src.nil? || @src.empty?
-      error :dst, 'must be present' if @dst.nil? || @dst.empty?
+      error :src, PRESENCE_ERROR_MSG if @src.nil? || @src.empty?
+      error :dst, PRESENCE_ERROR_MSG if @dst.nil? || @dst.empty?
     end
 
     def hash
@@ -174,9 +176,9 @@ module ConfigOMat
     end
 
     def validate
-      error :application, 'must be present' if @application.nil? || @application.empty?
-      error :environment, 'must be present' if @environment.nil? || @environment.empty?
-      error :profile, 'must be present' if @profile.nil? || @profile.empty?
+      error :application, PRESENCE_ERROR_MSG if @application.nil? || @application.empty?
+      error :environment, PRESENCE_ERROR_MSG if @environment.nil? || @environment.empty?
+      error :profile, PRESENCE_ERROR_MSG if @profile.nil? || @profile.empty?
       if !@s3_fallback.nil?
         if @s3_fallback.kind_of?(String)
           error :s3_fallback, 'must be non-empty' if @s3_fallback.empty?
@@ -225,8 +227,8 @@ module ConfigOMat
     end
 
     def validate
-      error :name, 'must be present' if @name.nil? || @name.empty?
-      error :contents, 'must be present' if @contents.nil? || @contents.empty?
+      error :name, PRESENCE_ERROR_MSG if @name.nil? || @name.empty?
+      error :contents, PRESENCE_ERROR_MSG if @contents.nil? || @contents.empty?
       error :contents, 'must be a hash' if !@contents.kind_of?(Hash)
     end
 
@@ -320,10 +322,10 @@ module ConfigOMat
     end
 
     def validate
-      error :name, 'must be present' if @name.nil? || @name.empty?
+      error :name, PRESENCE_ERROR_MSG if @name.nil? || @name.empty?
       error :name, 'must be a Symbol' unless @name.is_a?(Symbol)
-      error :version, 'must be present' if @version.nil? || @version.empty?
-      error :contents, 'must be present' if @contents.nil? || @contents.empty?
+      error :version, PRESENCE_ERROR_MSG if @version.nil? || @version.empty?
+      error :contents, PRESENCE_ERROR_MSG if @contents.nil? || @contents.empty?
     end
 
     def hash
@@ -392,7 +394,7 @@ module ConfigOMat
     end
 
     def validate
-      error :secret_id, 'must be present' if @secret_id.nil? || @secret_id.empty?
+      error :secret_id, PRESENCE_ERROR_MSG if @secret_id.nil? || @secret_id.empty?
       error :content_type, "must be one of #{VALID_CONTENT_TYPES}" unless VALID_CONTENT_TYPES.include?(@content_type)
     end
 

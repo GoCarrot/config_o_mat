@@ -36,7 +36,6 @@ module ConfigOMat
       def refresh_facter_profile
         profile_name = applying_profile.name
         profile_version = applying_profile.version
-        definition = profile_defs[profile_name]
         new_profile = ConfigOMat::LoadedFacterProfile.new(profile_name)
 
         if new_profile.version == profile_version
