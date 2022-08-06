@@ -204,4 +204,42 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
       end
     end
   end
+
+  context 'when restart_mode=none' do
+    let(:restart_mode) { 'none' }
+
+    context 'without a reload file present' do
+      it 'does not touch the reload file' do
+        expect { File.stat(File.join(runtime_directory, 'other.restart')) }.to raise_error(Errno::ENOENT)
+      end
+
+      it 'updates services_to_reload' do
+        expect(state).to have_attributes(
+          services_to_reload: %i[service0]
+        )
+      end
+    end
+
+    context 'with a reload file present' do
+      let(:touch_files) { ['other.restart'] }
+
+      it 'does not touch the reload file' do
+        expect(File.stat(File.join(runtime_directory, 'other.restart'))).to eq @stat['other.restart']
+      end
+
+      it 'updates services_to_reload' do
+        expect(state).to have_attributes(
+          services_to_reload: %i[service0]
+        )
+      end
+    end
+
+    context 'with a logger', logger: true do
+      it 'logs a skipped service reload' do
+        expect(@messages).to include(
+          contain_exactly(:notice, :skipped_service_restart, a_hash_including(name: :service1, systemd_unit: 'other'))
+        )
+      end
+    end
+  end
 end

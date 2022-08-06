@@ -57,7 +57,7 @@ RSpec.describe ConfigOMat::Service do
       expect(subject.errors).to match(
         templates: ['must be present', 'must be an array of strings'],
         systemd_unit: ['must be present'],
-        restart_mode: ['must be one of [:restart, :flip_flop, :restart_all]']
+        restart_mode: ['must be one of [:restart, :flip_flop, :restart_all, :none]']
       )
     end
   end
@@ -85,6 +85,15 @@ RSpec.describe ConfigOMat::Service do
       it 'has a restart_unit' do
         expect(subject.restart_unit).to eq systemd_unit
       end
+    end
+  end
+
+  context 'when restart_mode=none' do
+    let(:restart_mode) { 'none' }
+
+    it 'is valid' do
+      subject.validate
+      expect(subject.errors?).to be false
     end
   end
 

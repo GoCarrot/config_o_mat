@@ -89,7 +89,7 @@ module ConfigOMat
   end
 
   class Service < ConfigItem
-    RESTART_MODES = %i[restart flip_flop restart_all].freeze
+    RESTART_MODES = %i[restart flip_flop restart_all none].freeze
 
     attr_reader :systemd_unit, :restart_mode, :templates, :restart_unit
 
