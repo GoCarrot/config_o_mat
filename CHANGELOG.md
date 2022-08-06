@@ -1,3 +1,9 @@
+## 0.5.1
+
+ENHANCEMENTS:
+
+* Added restart_mode: none, to prevent service restarts on a configuration update.
+
 ## 0.5.0
 
 NEW FEATURES:
