@@ -1,3 +1,7 @@
+## 0.5.2
+
+* Rerelease of 0.5.1 with merged PRs.
+
 ## 0.5.1
 
 ENHANCEMENTS:
