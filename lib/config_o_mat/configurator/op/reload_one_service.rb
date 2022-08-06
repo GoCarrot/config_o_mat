@@ -33,6 +33,11 @@ module ConfigOMat
 
         if restart_mode == :restart || restart_mode == :restart_all
           do_restart(service, service_def)
+        elsif restart_mode == :none
+          logger&.notice(
+            :skipped_service_restart,
+            name: service, systemd_unit: service_def.systemd_unit
+          )
         else
           do_flip_flop(service, service_def)
         end
