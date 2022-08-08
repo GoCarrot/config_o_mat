@@ -1,3 +1,9 @@
+## 0.5.3
+
+BUG FIXES:
+
+* When restart_mode: none, output dropins to load credentials for services.
+
 ## 0.5.2
 
 * Rerelease of 0.5.1 with merged PRs.
