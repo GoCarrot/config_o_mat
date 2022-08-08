@@ -29,9 +29,11 @@ module ConfigOMat
         grouped_restart_modes = service_defs.values.group_by(&:restart_mode)
         restarts = grouped_restart_modes.fetch(:restart, []) + grouped_restart_modes.fetch(:restart_all, [])
         flip_flops = grouped_restart_modes[:flip_flop]
+        nones = grouped_restart_modes[:none]
 
         enable_restarts(restarts) if !restarts.empty?
         enable_flip_flops(flip_flops) if flip_flops
+        enable_nones(nones) if nones
 
         systemd_interface.daemon_reload
       end
@@ -49,6 +51,16 @@ module ConfigOMat
 
         FileUtils.mkdir_p(dropin_dir)
         File.open(File.join(dropin_dir, DROPIN_FILE_NAME), 'w') { |f| f.write(dropin) }
+      end
+
+      def enable_nones(services)
+        services.each do |service|
+          unit = service.systemd_unit.delete_suffix('@')
+          write_dropin(unit, service)
+
+          unit = "#{unit}@"
+          write_dropin(unit, service)
+        end
       end
 
       def enable_restarts(services)
