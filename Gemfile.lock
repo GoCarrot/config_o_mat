@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    config_o_mat (0.5.3)
+    config_o_mat (0.5.4)
       aws-sdk-appconfig (~> 1.18)
       aws-sdk-s3 (~> 1.114)
       aws-sdk-secretsmanager (~> 1.57)
