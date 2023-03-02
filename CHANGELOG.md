@@ -1,3 +1,9 @@
+## 0.5.4
+
+ENHACEMENTS:
+
+* Update to ruby-dbus 0.19.0, from 0.16.0.
+
 ## 0.5.3
 
 BUG FIXES:
