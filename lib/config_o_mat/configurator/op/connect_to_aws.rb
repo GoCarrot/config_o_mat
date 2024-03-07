@@ -27,11 +27,11 @@ module ConfigOMat
       writes :appconfig_client, :secretsmanager_client, :s3_client
 
       def call
-        client_opts = { logger: logger, use_dualstack_endpoint: true }
+        client_opts = { logger: logger }
         client_opts[:region] = region if region
 
         self.appconfig_client = Aws::AppConfig::Client.new(client_opts)
-        self.s3_client = Aws::S3::Client.new(client_opts)
+        self.s3_client = Aws::S3::Client.new(client_opts.merge(use_dualstack_endpoint: true ))
         self.secretsmanager_client = Aws::SecretsManager::Client.new(client_opts)
       end
     end
