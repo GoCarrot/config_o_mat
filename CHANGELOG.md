@@ -1,3 +1,9 @@
+## 0.5.5
+
+ENHANCEMENTS:
+
+* Use dualstack endpoints for AWS clients to support IPv6.
+
 ## 0.5.4
 
 ENHACEMENTS:
