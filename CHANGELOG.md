@@ -1,3 +1,9 @@
+## 0.5.6
+
+BUG FIXES:
+
+* Only use dualstack endpoints for S3 client. AppConfig does not support IPv6, standard Secrets Manager endpoints already are dualstack.
+
 ## 0.5.5
 
 ENHANCEMENTS:
