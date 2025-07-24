@@ -1,3 +1,9 @@
+## 0.5.7
+
+BUG FIXES:
+
+* Use `ENV.to_h` in initialization for Ruby 3+ compatibility
+
 ## 0.5.6
 
 BUG FIXES:
