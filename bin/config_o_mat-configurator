@@ -31,7 +31,7 @@ elsif log_level
   warn "Unknown log level requested in CONFIG_O_MAT_LOG_LEVEL: #{log_level}"
 end
 
-memory = ConfigOMat::Configurator::Memory.new(argv: ARGV, env: ENV, logger: logger)
+memory = ConfigOMat::Configurator::Memory.new(argv: ARGV, env: ENV.to_h, logger: logger)
 vm = ConfigOMat::Configurator::VM.new(memory)
 vm.call
 
