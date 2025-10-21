@@ -18,8 +18,10 @@ require 'config_o_mat/configurator/op/refresh_profile'
 
 require 'config_o_mat/configurator/memory'
 require 'config_o_mat/shared/types'
+require 'config_o_mat/secrets_loader'
 
 require 'aws-sdk-appconfig'
+require 'aws-sdk-secretsmanager'
 require 'aws-sdk-s3'
 require 'logsformyfamily'
 
@@ -338,19 +340,27 @@ RSpec.describe ConfigOMat::Op::RefreshProfile do
     end
 
     context 'when the profile is updated' do
+      let(:fake_profile) do
+        instance_double(
+          ConfigOMat::LoadedFacterProfile,
+          name: :source0,
+          version: 42,
+          contents: {is: 'new'},
+          errors?: false
+        )
+      end
+
       before do
         # Generate the facter profile before we stub out the constructor.
         applying_profile
-        allow(ConfigOMat::LoadedFacterProfile).to receive(:new).and_return(
-          OpenStruct.new(name: :source0, version: 42, contents: {is: 'new'})
-        )
+        allow(ConfigOMat::LoadedFacterProfile).to receive(:new).and_return(fake_profile)
       end
 
       it 'updates applying_profile' do
         subject
         expect(state.applying_profile).to eq(
           ConfigOMat::LoadedProfile.new(
-            OpenStruct.new(name: :source0, version: 42, contents: {is: 'new'}),
+            fake_profile,
             nil
           )
         )
