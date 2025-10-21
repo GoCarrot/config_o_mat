@@ -1,3 +1,9 @@
+## 0.5.8
+
+BUG FIXES:
+
+* Fixes crash when using S3 fallback under Ruby 3.3+
+
 ## 0.5.7
 
 BUG FIXES:
