@@ -456,6 +456,35 @@ module ConfigOMat
     end
   end
 
+  class S3FallbackResponse < ConfigItem
+    attr_reader :content, :content_type, :configuration_version
+
+    def initialize(content:, content_type:, configuration_version:)
+      @content = content
+      @content_type = content_type
+      @configuration_version = configuration_version
+    end
+
+    def validate
+      error :content, PRESENCE_ERROR_MSG if @content.nil?
+      error :content_type, PRESENCE_ERROR_MSG if @content_type.nil? || @content_type.empty?
+      error :configuration_version, PRESENCE_ERROR_MSG if @configuration_version.nil? || @configuration_version.empty?
+    end
+
+    def hash
+      @content.hash ^ @content_type.hash ^ @configuration_version.hash
+    end
+
+    def eql?(other)
+      return false if !super(other)
+      if other.content != content ||
+         other.content_type != content_type ||
+         other.configuration_version != configuration_version
+        return false
+      end
+      true
+    end
+  end
 
   class LoadedProfile < ConfigItem
     extend Forwardable
