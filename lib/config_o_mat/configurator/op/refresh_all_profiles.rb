@@ -59,7 +59,7 @@ module ConfigOMat
       def request_from_s3(profile_name, definition, ignore_errors)
         begin
           s3_response = s3_client.get_object(bucket: fallback_s3_bucket, key: definition.s3_fallback)
-          OpenStruct.new(
+          ConfigOMat::S3FallbackResponse.new(
             content: s3_response.body,
             content_type: s3_response.content_type,
             configuration_version: s3_response.version_id || s3_response.etag

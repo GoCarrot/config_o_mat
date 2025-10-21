@@ -274,3 +274,76 @@ RSpec.describe ConfigOMat::LoadedFacterProfile do
     expect { subject.contents[:networking][:interfaces][:lo0][:bindings][0][:netmas] }.to raise_error(KeyError, /No key :netmas in profile facter_test/)
   end
 end
+
+RSpec.describe ConfigOMat::S3FallbackResponse do
+  let(:content) { StringIO.new('{"test": "data"}') }
+  let(:content_type) { 'application/json' }
+  let(:configuration_version) { 'v123' }
+
+  subject do
+    described_class.new(
+      content: content,
+      content_type: content_type,
+      configuration_version: configuration_version
+    )
+  end
+
+  it 'is equal to another instance with the same settings' do
+    other = described_class.new(
+      content: content,
+      content_type: content_type,
+      configuration_version: configuration_version
+    )
+    expect(subject).to be == other
+  end
+
+  it 'is not equal to another instance with different settings' do
+    other = described_class.new(
+      content: content,
+      content_type: 'text/plain',
+      configuration_version: configuration_version
+    )
+    expect(subject).not_to be == other
+  end
+
+  it 'is not equal to a different type' do
+    expect(subject).not_to be == { content: content, content_type: content_type }
+  end
+
+  context 'without any settings' do
+    let(:content) { nil }
+    let(:content_type) { nil }
+    let(:configuration_version) { nil }
+
+    it 'reports errors' do
+      subject.validate
+      expect(subject.errors).to match(
+        content: ['must be present'],
+        content_type: ['must be present'],
+        configuration_version: ['must be present']
+      )
+    end
+  end
+
+  context 'with empty content_type' do
+    let(:content_type) { '' }
+
+    it 'reports errors' do
+      subject.validate
+      expect(subject.errors).to match(
+        content_type: ['must be present']
+      )
+    end
+  end
+
+  context 'with empty configuration_version' do
+    let(:configuration_version) { '' }
+
+    it 'reports errors' do
+      subject.validate
+      expect(subject.errors).to match(
+        configuration_version: ['must be present']
+      )
+    end
+  end
+end
