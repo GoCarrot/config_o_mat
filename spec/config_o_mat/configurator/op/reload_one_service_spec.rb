@@ -39,6 +39,7 @@ RSpec.describe ConfigOMat::Op::ReloadOneService do
       @stat ||= {}
       @stat[file] = File.stat(path)
     end
+    sleep 0.01 if touch_files.any? # Ensure mtime changes in CI environments
     @result = perform
   end
 
