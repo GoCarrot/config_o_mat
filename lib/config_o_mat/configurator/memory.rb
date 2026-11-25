@@ -27,7 +27,7 @@ module ConfigOMat
                     :last_refresh_time, :next_state, :retry_count, :retries_left, :retry_wait,
                     :region, :appconfig_client, :secretsmanager_client, :s3_client,
                     :systemd_interface, :secrets_loader_memory, :gc_compact, :gc_stat,
-                    :fallback_s3_bucket
+                    :fallback_s3_bucket, :rejected_profiles
 
       def initialize(
         argv: [],
@@ -63,7 +63,8 @@ module ConfigOMat
         secrets_loader_memory: nil,
         gc_compact: 0,
         gc_stat: 0,
-        fallback_s3_bucket: nil
+        fallback_s3_bucket: nil,
+        rejected_profiles: {}
       )
         super()
 
@@ -101,6 +102,7 @@ module ConfigOMat
         @gc_compact = gc_compact
         @gc_stat = gc_stat
         @fallback_s3_bucket = fallback_s3_bucket
+        @rejected_profiles = rejected_profiles
       end
     end
   end

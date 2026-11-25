@@ -39,6 +39,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
     ConfigOMat::Configurator::Memory.new(
       profile_defs: profile_defs,
       applied_profiles: applied_profiles,
+      rejected_profiles: rejected_profiles,
       client_id: client_id,
       appconfig_client: client_stub,
       secretsmanager_client: sm_client_stub,
@@ -114,6 +115,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
   end
 
   let(:client_id) { SecureRandom.uuid }
+  let(:rejected_profiles) { {} }
   let(:logger) { nil }
 
   context 'when all profiles refresh' do
@@ -484,6 +486,34 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
           contain_exactly(:error, :refusing_chaos_config, a_hash_including(name: :source2, reason: 'no s3 fallback provided'))
         )
       end
+    end
+  end
+
+  context 'with rejected profiles' do
+    # Facts that were rejected, and no older facts applied: without the rejection they'd stage.
+    let(:applied_profiles) { super().reject { |name, _| name == :source3 } }
+
+    let(:rejected_profiles) do
+      {
+        source1: ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source1, '2', { answer: 181 }.to_json, 'application/json'),
+          nil
+        ),
+        source3: ConfigOMat::LoadedProfile.new(ConfigOMat::LoadedFacterProfile.new(:source3), nil)
+      }
+    end
+
+    it 'sends the rejected version instead of the applied one' do
+      expect(client_stub.api_requests).to include(
+        a_hash_including(
+          params: { application: 'foo', environment: 'bar', configuration: 'boo', client_configuration_version: '2',
+                    client_id: client_id }
+        )
+      )
+    end
+
+    it 'does not stage the rejected versions again' do
+      expect(state.profiles_to_apply.map(&:name)).to contain_exactly(:source2)
     end
   end
 end

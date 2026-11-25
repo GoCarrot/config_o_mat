@@ -107,7 +107,10 @@ Services can use different restart strategies:
 
 The Configurator VM includes retry logic:
 - On first run, any operation failure causes the VM to fail immediately
-- After first run, failures trigger retry with exponential backoff
+- After first run, a profile version that fails to parse or render is rejected, not retried: the last good output
+  stays, `profile_rejected` is logged at error (repeated every 60 ticks), and the version isn't received again
+- After first run, failures while applying a profile (reloads, re-fetching it) retry with exponential backoff, then exit;
+  a failed refresh of all profiles exits at once
 - Configurable via `retry_count` and `retry_wait` in config files
 - Failed profile refreshes can roll back to previous working version
 

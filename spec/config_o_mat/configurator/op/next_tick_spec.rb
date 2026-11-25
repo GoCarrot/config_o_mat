@@ -43,6 +43,7 @@ RSpec.describe ConfigOMat::Op::NextTick do
       retries_left: retries_left,
       gc_stat: gc_stat,
       gc_compact: gc_compact,
+      rejected_profiles: rejected_profiles,
       logger: logger
     )
   end
@@ -55,6 +56,7 @@ RSpec.describe ConfigOMat::Op::NextTick do
   let(:gc_stat) { 0 }
   let(:gc_compact) { 0 }
   let(:logger) { nil }
+  let(:rejected_profiles) { {} }
 
   context "when we aren't due to refresh profiles" do
     it 'sleeps' do
@@ -146,6 +148,35 @@ RSpec.describe ConfigOMat::Op::NextTick do
             contain_exactly(:info, :gc_compact, a_hash_including(compact: {did: :thing}))
           )
         end
+      end
+    end
+  end
+
+  context 'with a rejected profile', logger: true do
+    let(:rejected_profiles) do
+      {
+        source0: ConfigOMat::LoadedProfile.new(
+          ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', { other: 1 }.to_json, 'application/json'),
+          nil
+        )
+      }
+    end
+
+    context 'on the 60th tick' do
+      let(:run_count) { 59 }
+
+      it 'logs it again as an error' do
+        expect(@messages).to include(
+          contain_exactly(:error, :profile_rejected, a_hash_including(name: :source0, profile_version: '2', still_rejected: true))
+        )
+      end
+    end
+
+    context 'on any other tick' do
+      let(:run_count) { 60 }
+
+      it 'stays quiet' do
+        expect(@messages.map { |m| m[1] }).not_to include(:profile_rejected)
       end
     end
   end

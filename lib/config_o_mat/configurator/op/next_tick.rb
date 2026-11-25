@@ -22,8 +22,11 @@ module ConfigOMat
   module Op
     class NextTick < LifecycleVM::OpBase
       PAUSE_INTERVAL = 1
+      # Ticks are at least PAUSE_INTERVAL apart, so this is at most once a minute.
+      REJECTION_LOG_TICKS = 60
 
-      reads :last_refresh_time, :refresh_interval, :run_count, :retry_count, :gc_stat, :gc_compact
+      reads :last_refresh_time, :refresh_interval, :run_count, :retry_count, :gc_stat, :gc_compact,
+            :rejected_profiles
       writes :next_state, :run_count, :retries_left
 
       def call
@@ -41,6 +44,8 @@ module ConfigOMat
           logger&.info(:gc_stat, stat: response)
         end
 
+        log_rejected_profiles
+
         # If we got here then our retry process has succeeded.
         self.retries_left = retry_count
 
@@ -51,6 +56,17 @@ module ConfigOMat
           self.next_state = :refreshing_profiles
         else
           self.next_state = :running
+        end
+      end
+
+    private
+
+      # Keeps the error alarm lit for as long as a host is running on config older than what's deployed.
+      def log_rejected_profiles
+        return if rejected_profiles.empty? || run_count % REJECTION_LOG_TICKS != 0
+
+        rejected_profiles.each_value do |rejected|
+          logger&.error(:profile_rejected, name: rejected.name, profile_version: rejected.version, still_rejected: true)
         end
       end
     end

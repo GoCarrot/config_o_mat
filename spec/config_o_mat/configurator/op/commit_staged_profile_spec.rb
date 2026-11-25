@@ -31,7 +31,9 @@ RSpec.describe ConfigOMat::Op::CommitStagedProfile do
   let(:state) do
     ConfigOMat::Configurator::Memory.new(
       applied_profiles: applied_profiles,
-      applying_profile: applying_profile
+      applying_profile: applying_profile,
+      rejected_profiles: rejected_profiles,
+      profiles_to_apply: profiles_to_apply
     )
   end
 
@@ -57,6 +59,8 @@ RSpec.describe ConfigOMat::Op::CommitStagedProfile do
   end
 
   let(:applying_profile) { n_source1 }
+  let(:rejected_profiles) { {} }
+  let(:profiles_to_apply) { [] }
   let(:applied_profiles) do
     {
       source0: source0,
@@ -83,6 +87,38 @@ RSpec.describe ConfigOMat::Op::CommitStagedProfile do
         applied_profiles: applied_profiles,
         applying_profile: nil
       )
+    end
+  end
+
+  context 'when the committed profile was rejected at an older version' do
+    let(:rejected_profiles) { { source1: source1 } }
+
+    it 'clears the rejection' do
+      expect(state.rejected_profiles).to be_empty
+      expect(state.profiles_to_apply).to be_empty
+    end
+  end
+
+  context 'when another profile is rejected' do
+    let(:r_source0) do
+      ConfigOMat::LoadedProfile.new(
+        ConfigOMat::LoadedAppconfigProfile.new(:source0, '2', { other: 1 }.to_json, 'application/json'),
+        nil
+      )
+    end
+    let(:rejected_profiles) { { source0: r_source0 } }
+
+    it 'queues it to be tried again, keeping the rejection until it commits' do
+      expect(state.profiles_to_apply).to eq [r_source0]
+      expect(state.rejected_profiles).to eq(source0: r_source0)
+    end
+
+    context 'when a newer version of it is already queued' do
+      let(:profiles_to_apply) { [source0] }
+
+      it 'does not queue the rejected one' do
+        expect(state.profiles_to_apply).to eq [source0]
+      end
     end
   end
 end

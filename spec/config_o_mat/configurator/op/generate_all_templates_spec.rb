@@ -149,10 +149,29 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
           )
         end
 
-        it 'errors' do
-          expect(result.errors).to match(
-            source1: [{ contents: [an_instance_of(JSON::ParserError)] }]
+        it 'rejects the profile without erroring' do
+          expect(result.errors?).to be false
+          expect(state).to have_attributes(
+            applying_profile: nil,
+            rejected_profiles: { source1: applying_profile },
+            services_to_reload: [],
+            generated_templates: generated_templates
           )
+        end
+
+        it 'writes nothing' do
+          expect(Dir.children(runtime_directory)).to be_empty
+        end
+
+        context 'with a logger', logger: true do
+          it 'logs the rejection as an error' do
+            expect(@messages).to include(
+              contain_exactly(
+                :error, :profile_rejected,
+                a_hash_including(name: :source1, profile_version: '3', errors: { source1: { contents: [an_instance_of(JSON::ParserError)] } })
+              )
+            )
+          end
         end
       end
     end
@@ -208,6 +227,10 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
       expect(result.errors).to match(
         templ1: [an_instance_of(NoMethodError)]
       )
+    end
+
+    it 'writes none of the templates that did render' do
+      expect(Dir.children(runtime_directory)).to be_empty
     end
   end
 end
