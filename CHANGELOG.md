@@ -1,3 +1,13 @@
+## 0.5.9
+
+BUG FIXES:
+
+* A running configurator no longer exits when a new profile version fails to parse or render. It keeps its last good
+  output, logs `profile_rejected` at `error` (repeated once a minute while any profile stays rejected), and sends the
+  rejected version on refresh so AppConfig doesn't send it again. Rejected profiles are retried whenever another
+  profile commits.
+* Templates are written only once all of them render, so a failure leaves every output file as it was.
+
 ## 0.5.8
 
 BUG FIXES:
