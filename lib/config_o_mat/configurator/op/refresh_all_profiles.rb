@@ -21,7 +21,7 @@ require 'config_o_mat/secrets_loader'
 module ConfigOMat
   module Op
     class RefreshAllProfiles < LifecycleVM::OpBase
-      reads :profile_defs, :applied_profiles, :client_id, :appconfig_client, :secrets_loader_memory,
+      reads :profile_defs, :applied_profiles, :rejected_profiles, :client_id, :appconfig_client, :secrets_loader_memory,
             :secretsmanager_client, :s3_client, :fallback_s3_bucket
       writes :profiles_to_apply, :last_refresh_time, :secrets_loader_memory
 
@@ -42,8 +42,13 @@ module ConfigOMat
 
     private
 
+      # A rejected version counts as known, so we neither receive it again nor re-stage it.
+      def known_version(profile_name)
+        (rejected_profiles[profile_name] || applied_profiles&.fetch(profile_name, nil))&.version
+      end
+
       def refresh_facter_profile(profile_name)
-        current_version = applied_profiles&.fetch(profile_name, nil)&.version
+        current_version = known_version(profile_name)
         new_profile = ConfigOMat::LoadedFacterProfile.new(profile_name)
 
         return if new_profile.version == current_version
@@ -77,7 +82,7 @@ module ConfigOMat
           configuration: definition.profile, client_id: client_id
         }
 
-        current_version = applied_profiles&.fetch(profile_name, nil)&.version
+        current_version = known_version(profile_name)
         request[:client_configuration_version] = current_version if current_version
         fallback = false
 

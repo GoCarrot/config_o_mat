@@ -20,46 +20,63 @@ module ConfigOMat
   module Op
     class GenerateAllTemplates < LifecycleVM::OpBase
       reads :template_defs, :dependencies, :applied_profiles, :applying_profile, :generated_templates,
-            :compiled_templates, :runtime_directory
+            :compiled_templates, :runtime_directory, :rejected_profiles
 
-      writes :generated_templates, :services_to_reload
+      writes :generated_templates, :services_to_reload, :applying_profile, :rejected_profiles
 
       def call
-        # By doing the error check here instead of in StageOneProfile we ensure that the applying_profile
-        # gets set in memory, even if errored, which simplifies the retry logic.
-        error applying_profile.name, applying_profile.errors if applying_profile&.errors?
-
-        return if errors?
-
-        profiles = applied_profiles
-        profiles[applying_profile.name] = applying_profile if applying_profile
         self.services_to_reload = []
 
-        template_defs.each do |(key, templ_def)|
-          compiled_template = compiled_templates[key]
+        failures = {}
+        # Checked here rather than in StageOneProfile so a profile that failed to parse is still the
+        # applying_profile, and can be rejected below like one that fails to render.
+        failures[applying_profile.name] = applying_profile.errors if applying_profile&.errors?
 
-          begin
-            rendered = compiled_template.render(profiles)
-          rescue StandardError => e
-            error key, e
-            next
-          end
+        rendered = failures.empty? ? render_all(failures) : {}
 
-          generated = GeneratedTemplate.new(rendered)
+        return reject_applying_profile(failures) if !failures.empty? && applying_profile
+        return failures.each { |(key, err)| error key, err } unless failures.empty?
 
-          if generated_templates[key] != generated
-            destination_file = File.join(runtime_directory, templ_def.dst)
-            logger&.notice(:template_update, template: key, file: destination_file, digest: generated.digest)
+        # Only write once every template has rendered, so a failure leaves all output as it was.
+        rendered.each do |(key, contents)|
+          generated = GeneratedTemplate.new(contents)
+          next if generated_templates[key] == generated
 
-            generated_templates[key] = generated
-            File.open(destination_file, 'w') { |f| f.write(rendered) }
-            dependencies[key]&.each { |service| services_to_reload << service }
-          end
+          destination_file = File.join(runtime_directory, template_defs[key].dst)
+          logger&.notice(:template_update, template: key, file: destination_file, digest: generated.digest)
+
+          generated_templates[key] = generated
+          File.open(destination_file, 'w') { |f| f.write(contents) }
+          dependencies[key]&.each { |service| services_to_reload << service }
         end
 
         services_to_reload.uniq!
 
         logger&.notice(:scheduled_restarts, services: services_to_reload)
+      end
+
+    private
+
+      def render_all(failures)
+        profiles = applied_profiles
+        profiles[applying_profile.name] = applying_profile if applying_profile
+
+        template_defs.each_key.with_object({}) do |key, rendered|
+          rendered[key] = compiled_templates[key].render(profiles)
+        rescue StandardError => e
+          failures[key] = e
+        end
+      end
+
+      # Keep the last good output; exiting makes systemd restart us, and every restart receives every profile again.
+      def reject_applying_profile(failures)
+        logger&.error(
+          :profile_rejected,
+          name: applying_profile.name, profile_version: applying_profile.version, errors: failures
+        )
+
+        rejected_profiles[applying_profile.name] = applying_profile
+        self.applying_profile = nil
       end
     end
   end
