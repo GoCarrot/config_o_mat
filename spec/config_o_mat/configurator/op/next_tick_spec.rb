@@ -151,6 +151,7 @@ RSpec.describe ConfigOMat::Op::NextTick do
       end
     end
   end
+
   context 'with a rejected profile', logger: true do
     let(:rejected_profiles) do
       {

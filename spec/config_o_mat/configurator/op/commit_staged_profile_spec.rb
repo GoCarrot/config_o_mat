@@ -89,6 +89,7 @@ RSpec.describe ConfigOMat::Op::CommitStagedProfile do
       )
     end
   end
+
   context 'when the committed profile was rejected at an older version' do
     let(:rejected_profiles) { { source1: source1 } }
 

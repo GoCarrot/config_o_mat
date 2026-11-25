@@ -34,8 +34,14 @@ module ConfigOMat
 
         rendered = failures.empty? ? render_all(failures) : {}
 
-        return reject_applying_profile(failures) if !failures.empty? && applying_profile
-        return failures.each { |(key, err)| error key, err } unless failures.empty?
+        unless failures.empty?
+          if applying_profile
+            reject_applying_profile(failures)
+          else
+            failures.each { |(key, err)| error key, err }
+          end
+          return
+        end
 
         # Only write once every template has rendered, so a failure leaves all output as it was.
         rendered.each do |(key, contents)|

@@ -174,7 +174,6 @@ RSpec.describe ConfigOMat::Op::GenerateAllTemplates do
           end
         end
       end
-
     end
 
     context 'with a logger', logger: true do

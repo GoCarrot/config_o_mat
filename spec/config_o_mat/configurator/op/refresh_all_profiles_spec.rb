@@ -488,6 +488,7 @@ RSpec.describe ConfigOMat::Op::RefreshAllProfiles do
       end
     end
   end
+
   context 'with rejected profiles' do
     # Facts that were rejected, and no older facts applied: without the rejection they'd stage.
     let(:applied_profiles) { super().reject { |name, _| name == :source3 } }
