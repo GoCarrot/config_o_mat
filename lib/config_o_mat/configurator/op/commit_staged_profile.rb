@@ -30,7 +30,7 @@ module ConfigOMat
         applied_profiles[applying_profile.name] = applying_profile
 
         if rejected_profiles.delete(applying_profile.name)
-          logger&.notice(:profile_rejection_cleared, name: applying_profile.name, version: applying_profile.version)
+          logger&.notice(:profile_rejection_cleared, name: applying_profile.name, profile_version: applying_profile.version)
         end
 
         self.applying_profile = nil
@@ -39,7 +39,7 @@ module ConfigOMat
         rejected_profiles.each_value do |rejected|
           next if profiles_to_apply.any? { |queued| queued.name == rejected.name }
 
-          logger&.notice(:retrying_rejected_profile, name: rejected.name, version: rejected.version)
+          logger&.notice(:retrying_rejected_profile, name: rejected.name, profile_version: rejected.version)
           profiles_to_apply.unshift(rejected)
         end
       end
